@@ -165,27 +165,25 @@ document.addEventListener('DOMContentLoaded', () => {
 
     checkAuth() {
       const user = window.studyPulseApi.currentUser;
+      const userContainer = document.getElementById('user-nav-container');
       const userDisplay = document.getElementById('user-display-name');
       const userAvatar = document.getElementById('user-avatar-img');
       const authActionBtn = document.getElementById('open-login-btn');
 
-      if (user) {
-        const displayName = user.username ? `@${user.username}` : (user.name || 'Scholar');
+      if (user && user.username) {
+        const displayName = `@${user.username}`;
         if (userDisplay) {
           userDisplay.textContent = displayName;
-          userDisplay.classList.remove('hidden');
         }
-        if (userAvatar) userAvatar.src = user.avatar || `https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(user.username || displayName)}`;
-        if (authActionBtn) {
-          authActionBtn.textContent = 'Account';
-          authActionBtn.onclick = () => this.switchTab('profile');
+        if (userAvatar) {
+          userAvatar.src = user.avatar || `https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(user.username)}`;
         }
+        if (userContainer) userContainer.classList.remove('hidden');
+        if (authActionBtn) authActionBtn.classList.add('hidden');
       } else {
-        if (userDisplay) {
-          userDisplay.textContent = 'Guest Scholar';
-        }
+        if (userContainer) userContainer.classList.add('hidden');
         if (authActionBtn) {
-          authActionBtn.textContent = 'Sign In';
+          authActionBtn.classList.remove('hidden');
           authActionBtn.onclick = () => {
             this.openAuthModal();
             this.switchAuthTab('signin');
@@ -197,15 +195,15 @@ document.addEventListener('DOMContentLoaded', () => {
     switchTab(tabName) {
       this.currentTab = tabName;
 
-      // Update Nav buttons styling
+      // Update Nav buttons styling with active glow and animations
       document.querySelectorAll('[data-tab]').forEach((btn) => {
         const isCurrent = btn.getAttribute('data-tab') === tabName;
         if (isCurrent) {
-          btn.classList.add('text-indigo-600', 'dark:text-indigo-400', 'font-bold');
-          btn.classList.remove('text-slate-500', 'dark:text-slate-400');
+          btn.classList.add('active-tab', 'text-indigo-600', 'dark:text-indigo-400', 'font-bold');
+          btn.classList.remove('text-slate-600', 'text-slate-500', 'dark:text-slate-400');
         } else {
-          btn.classList.remove('text-indigo-600', 'dark:text-indigo-400', 'font-bold');
-          btn.classList.add('text-slate-500', 'dark:text-slate-400');
+          btn.classList.remove('active-tab', 'text-indigo-600', 'dark:text-indigo-400', 'font-bold');
+          btn.classList.add('text-slate-600', 'dark:text-slate-400');
         }
       });
 

@@ -1,5 +1,5 @@
-// Study Pro 42 PWA Service Worker v13 (Task persistence fix & cloud sync)
-const CACHE_NAME = 'studypro42-v13';
+// Study Pro 42 PWA Service Worker v14 (Stunning Animated Navigation Bar & Streamlined Username)
+const CACHE_NAME = 'studypro42-v14';
 
 self.addEventListener('install', (event) => {
   self.skipWaiting();

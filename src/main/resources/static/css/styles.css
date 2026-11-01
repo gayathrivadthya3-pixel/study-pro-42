@@ -36,6 +36,123 @@ h1, h2, h3, h4, .font-heading {
   border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
+/* ========================================================= */
+/* ANIMATED COLORFUL NAVIGATION BAR                          */
+/* ========================================================= */
+@keyframes gradient-flow {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.nav-gradient-border {
+  position: relative;
+}
+
+.nav-gradient-border::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 2.5px;
+  background: linear-gradient(90deg, #6366f1, #a855f7, #ec4899, #06b6d4, #10b981, #6366f1);
+  background-size: 300% 100%;
+  animation: gradient-flow 6s linear infinite;
+  z-index: 50;
+}
+
+.mobile-nav-gradient-border {
+  position: relative;
+}
+
+.mobile-nav-gradient-border::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, #6366f1, #a855f7, #ec4899, #06b6d4, #10b981, #6366f1);
+  background-size: 300% 100%;
+  animation: gradient-flow 6s linear infinite;
+  z-index: 50;
+}
+
+/* Animated Logo Badge & Text */
+.animated-logo-box {
+  background: linear-gradient(135deg, #4f46e5, #7c3aed, #db2777, #4f46e5);
+  background-size: 300% 300%;
+  animation: gradient-flow 6s ease infinite;
+}
+
+.animated-logo-text {
+  background: linear-gradient(90deg, #4f46e5, #9333ea, #db2777, #4f46e5);
+  background-size: 300% 100%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: gradient-flow 6s ease infinite;
+}
+
+/* User pill with animated flowing gradient border */
+.nav-user-pill {
+  position: relative;
+  border-radius: 9999px;
+  padding: 1.5px;
+  background: linear-gradient(90deg, #6366f1, #ec4899, #8b5cf6, #3b82f6, #6366f1);
+  background-size: 300% 100%;
+  animation: gradient-flow 5s linear infinite;
+  box-shadow: 0 2px 10px -2px rgba(99, 102, 241, 0.3);
+  transition: all 0.25s ease;
+}
+
+.nav-user-pill:hover {
+  transform: translateY(-1px) scale(1.02);
+  box-shadow: 0 4px 16px -2px rgba(168, 85, 247, 0.45);
+}
+
+.nav-user-pill-inner {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.3rem 0.75rem 0.3rem 0.35rem;
+  border-radius: 9999px;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(8px);
+}
+
+.dark .nav-user-pill-inner {
+  background: rgba(15, 23, 42, 0.95);
+}
+
+/* Animated transitions for nav buttons */
+.nav-tab-btn {
+  position: relative;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.nav-tab-btn:hover {
+  transform: translateY(-1px);
+  color: #4f46e5 !important;
+}
+
+.dark .nav-tab-btn:hover {
+  color: #a5b4fc !important;
+}
+
+.nav-tab-btn.active-tab {
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.12), rgba(168, 85, 247, 0.12));
+  color: #4f46e5 !important;
+  font-weight: 700;
+  box-shadow: inset 0 0 0 1px rgba(99, 102, 241, 0.25), 0 2px 8px -2px rgba(99, 102, 241, 0.2);
+}
+
+.dark .nav-tab-btn.active-tab {
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(168, 85, 247, 0.2));
+  color: #a5b4fc !important;
+  box-shadow: inset 0 0 0 1px rgba(168, 85, 247, 0.35), 0 2px 8px -2px rgba(168, 85, 247, 0.25);
+}
+
 .glass-card {
   background: rgba(255, 255, 255, 0.65);
   backdrop-filter: blur(12px);

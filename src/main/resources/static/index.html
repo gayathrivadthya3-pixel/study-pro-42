@@ -47,65 +47,65 @@
 </head>
 <body class="bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 min-h-screen transition-colors duration-200">
 
-  <!-- Top Navigation Bar -->
-  <header class="sticky top-0 z-40 glass-panel border-b border-slate-200/80 dark:border-slate-800/80">
+  <!-- Top Navigation Bar with Animated Colors -->
+  <header class="sticky top-0 z-40 glass-panel nav-gradient-border shadow-sm">
     <div class="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
       <!-- App Logo -->
-      <div class="flex items-center gap-3 cursor-pointer" onclick="window.studyPulseApp.switchTab('dashboard')">
-        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 via-indigo-500 to-purple-500 flex items-center justify-center text-white shadow-lg shadow-indigo-500/30 font-black text-sm tracking-wider">
+      <div class="flex items-center gap-3 cursor-pointer group" onclick="window.studyPulseApp.switchTab('dashboard')">
+        <div class="w-10 h-10 rounded-xl animated-logo-box flex items-center justify-center text-white shadow-lg shadow-indigo-500/25 font-black text-sm tracking-wider transition-transform duration-300 group-hover:scale-105">
           42
         </div>
         <div>
-          <span class="font-heading font-extrabold text-lg tracking-tight bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">Study Pro 42</span>
-          <span class="hidden md:inline-block ml-2 text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-indigo-100 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300">Gamified Study Hub</span>
+          <span class="font-heading font-extrabold text-lg tracking-tight animated-logo-text">Study Pro 42</span>
+          <span class="hidden md:inline-block ml-2 text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-300 border border-indigo-200/50 dark:border-indigo-800/50">Gamified Study Hub</span>
         </div>
       </div>
 
-      <!-- Desktop Nav Items -->
-      <nav class="hidden md:flex items-center gap-1 font-medium text-sm">
-        <button data-tab="dashboard" class="px-3.5 py-1.5 rounded-xl transition text-indigo-600 dark:text-indigo-400 font-bold hover:bg-slate-100 dark:hover:bg-slate-800">
-          <i class="fa-solid fa-chart-pie mr-1.5"></i> Dashboard
+      <!-- Desktop Nav Items with Animation Colors -->
+      <nav class="hidden md:flex items-center gap-1.5 font-medium text-sm">
+        <button data-tab="dashboard" class="nav-tab-btn active-tab px-3.5 py-1.5 rounded-xl flex items-center gap-1.5">
+          <i class="fa-solid fa-chart-pie text-indigo-500"></i> Dashboard
         </button>
-        <button data-tab="timings" class="px-3.5 py-1.5 rounded-xl transition text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800">
-          <i class="fa-regular fa-clock mr-1.5"></i> Study Timings
+        <button data-tab="timings" class="nav-tab-btn px-3.5 py-1.5 rounded-xl text-slate-600 dark:text-slate-400 flex items-center gap-1.5">
+          <i class="fa-regular fa-clock"></i> Study Timings
         </button>
-        <button data-tab="tasks" class="px-3.5 py-1.5 rounded-xl transition text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800">
-          <i class="fa-regular fa-calendar-check mr-1.5"></i> Daily Tasks
+        <button data-tab="tasks" class="nav-tab-btn px-3.5 py-1.5 rounded-xl text-slate-600 dark:text-slate-400 flex items-center gap-1.5">
+          <i class="fa-regular fa-calendar-check"></i> Daily Tasks
         </button>
-        <button data-tab="gamify" class="px-3.5 py-1.5 rounded-xl transition text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800">
-          <i class="fa-solid fa-award mr-1.5"></i> Gamified View
+        <button data-tab="gamify" class="nav-tab-btn px-3.5 py-1.5 rounded-xl text-slate-600 dark:text-slate-400 flex items-center gap-1.5">
+          <i class="fa-solid fa-award"></i> Gamified View
         </button>
-        <button data-tab="profile" class="px-3.5 py-1.5 rounded-xl transition text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800">
-          <i class="fa-regular fa-user mr-1.5"></i> Profile
+        <button data-tab="profile" class="nav-tab-btn px-3.5 py-1.5 rounded-xl text-slate-600 dark:text-slate-400 flex items-center gap-1.5">
+          <i class="fa-regular fa-user"></i> Profile
         </button>
       </nav>
 
-      <!-- Right Header Actions (Database status, User profile pill) -->
+      <!-- Right Header: ONLY Username Pill -->
       <div class="flex items-center gap-2">
-        <!-- Database Cloud Status Pill -->
-        <div id="db-status-badge" class="hidden sm:inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-800 dark:bg-blue-950/60 dark:text-blue-300 border border-blue-200 dark:border-blue-800 shadow-sm" title="Database status">
-          <span class="w-2 h-2 rounded-full bg-blue-600 mr-1.5 animate-pulse"></span> MySQL Database
-        </div>
-
-        <!-- Install Mobile App Button (PWA) -->
+        <!-- Install Mobile App Button (PWA - hidden until browser triggers prompt) -->
         <button id="pwa-install-btn" class="hidden px-2.5 py-1 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-bold text-xs shadow-sm transition flex items-center gap-1.5 animate-pulse" title="Install App on Phone / Desktop">
           <i class="fa-solid fa-mobile-screen"></i>
           <span class="hidden sm:inline">Install App</span>
         </button>
 
-        <!-- Refresh / Cache Purge Button -->
-        <button onclick="window.studyPulseApp.handleHardRefresh()" title="Refresh & Clear Cached UI" class="p-2 rounded-xl text-slate-500 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition text-sm">
-          <i class="fa-solid fa-arrows-rotate"></i>
-        </button>
-
-        <!-- User Profile / Login Pill -->
-        <div class="flex items-center gap-2 pl-2 border-l border-slate-200 dark:border-slate-800">
-          <img id="user-avatar-img" src="https://api.dicebear.com/7.x/bottts/svg?seed=Scholar" alt="User" class="w-8 h-8 rounded-full border border-indigo-300 dark:border-indigo-700 bg-indigo-50 dark:bg-slate-800">
-          <span id="user-display-name" class="hidden sm:inline-block text-xs font-bold text-slate-800 dark:text-slate-200">Scholar Guest</span>
-          <button id="open-login-btn" class="px-3 py-1 rounded-xl text-xs font-bold bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm transition">
-            Sign In
-          </button>
+        <!-- Logged-in Username Pill (Only Username Displayed) -->
+        <div id="user-nav-container" class="cursor-pointer" onclick="window.studyPulseApp.switchTab('profile')" title="View Account Profile">
+          <div class="nav-user-pill">
+            <div class="nav-user-pill-inner">
+              <div class="relative">
+                <img id="user-avatar-img" src="https://api.dicebear.com/7.x/bottts/svg?seed=Scholar" alt="Avatar" class="w-7 h-7 rounded-full object-cover border border-indigo-200 dark:border-indigo-800 bg-indigo-50 dark:bg-slate-800">
+                <span class="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-emerald-500 ring-2 ring-white dark:ring-slate-900"></span>
+              </div>
+              <span id="user-display-name" class="text-xs font-bold bg-gradient-to-r from-slate-900 to-indigo-900 dark:from-white dark:to-indigo-200 bg-clip-text text-transparent max-w-[120px] sm:max-w-[160px] truncate">@Scholar</span>
+            </div>
+          </div>
         </div>
+
+        <!-- Sign In Button (Only shown when logged out as Guest) -->
+        <button id="open-login-btn" class="hidden px-3.5 py-1.5 rounded-full text-xs font-bold text-white bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 hover:opacity-95 shadow-md shadow-indigo-500/20 transition-all transform hover:scale-105 active:scale-95 flex items-center gap-1.5">
+          <i class="fa-solid fa-arrow-right-to-bracket text-[11px]"></i>
+          <span>Sign In</span>
+        </button>
       </div>
     </div>
   </header>
@@ -634,8 +634,8 @@
   <!-- ======================================================== -->
   <!-- MOBILE BOTTOM NAVIGATION BAR -->
   <!-- ======================================================== -->
-  <nav class="md:hidden fixed bottom-0 left-0 right-0 z-40 glass-panel border-t border-slate-200/80 dark:border-slate-800/80 mobile-nav-bar flex items-center justify-around py-2">
-    <button data-tab="dashboard" class="flex flex-col items-center text-indigo-600 dark:text-indigo-400 font-bold text-[10px]">
+  <nav class="md:hidden fixed bottom-0 left-0 right-0 z-40 glass-panel mobile-nav-gradient-border mobile-nav-bar flex items-center justify-around py-2.5 shadow-2xl">
+    <button data-tab="dashboard" class="flex flex-col items-center text-indigo-600 dark:text-indigo-400 font-bold text-[10px] transition-transform active:scale-95">
       <i class="fa-solid fa-chart-pie text-lg mb-0.5"></i>
       <span>Home</span>
     </button>
