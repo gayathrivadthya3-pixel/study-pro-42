@@ -411,9 +411,12 @@ document.addEventListener('DOMContentLoaded', () => {
       if (upcoming.length === 0) {
         listEl.innerHTML = `
           <div class="text-center py-6 text-slate-400">
-            <i class="fa-regular fa-circle-check text-3xl text-emerald-500 mb-2"></i>
-            <p class="text-sm font-medium">All planned tasks completed for today!</p>
-            <button onclick="window.studyPulseApp.switchTab('tasks')" class="mt-2 text-xs text-indigo-600 dark:text-indigo-400 underline">Add or load more tasks</button>
+            <i class="fa-regular fa-calendar-check text-3xl text-emerald-500 mb-2"></i>
+            <p class="text-sm font-medium text-slate-700 dark:text-slate-300">No pending tasks for today</p>
+            <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Add custom tasks to plan your day!</p>
+            <button onclick="window.studyPulseApp.openTaskModal()" class="mt-3 px-3.5 py-1.5 bg-indigo-600 text-white rounded-xl text-xs font-bold shadow-sm hover:bg-indigo-700 transition">
+              <i class="fa-solid fa-plus mr-1"></i> Add Task
+            </button>
           </div>
         `;
         return;
@@ -459,13 +462,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
       if (filtered.length === 0) {
         container.innerHTML = `
-          <div class="text-center py-12 text-slate-400 glass-card rounded-2xl p-8">
-            <i class="fa-regular fa-calendar-xmark text-4xl mb-3 text-slate-300"></i>
-            <p class="text-base font-semibold">No study schedules found for ${this.getCategoryName(this.currentCategory)}.</p>
-            <p class="text-xs mt-1">Add your study hours or restore the recommended default timings.</p>
-            <button onclick="window.studyPulseApp.openTimingModal()" class="mt-4 px-4 py-2 bg-indigo-600 text-white rounded-xl text-xs font-semibold hover:bg-indigo-700 shadow-md">
-              <i class="fa-solid fa-plus mr-1"></i> Add Study Timing
-            </button>
+          <div class="text-center py-12 glass-card rounded-2xl p-8 border">
+            <div class="w-16 h-16 mx-auto mb-3 rounded-2xl bg-indigo-50 dark:bg-slate-800 text-indigo-500 dark:text-indigo-400 flex items-center justify-center text-3xl">
+              <i class="fa-regular fa-calendar-xmark"></i>
+            </div>
+            <h4 class="text-base font-bold text-slate-800 dark:text-slate-100">No study schedules yet</h4>
+            <p class="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-sm mx-auto">Create your custom timetable and set study alarms for ${this.getCategoryName(this.currentCategory)}.</p>
+            <div class="mt-4 flex flex-wrap items-center justify-center gap-2">
+              <button onclick="window.studyPulseApp.openTimingModal()" class="px-5 py-2.5 bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 text-white rounded-xl text-xs font-bold shadow-md hover:opacity-95 transition transform hover:scale-105 active:scale-95 flex items-center gap-1.5">
+                <i class="fa-solid fa-plus"></i> Add Study Timing
+              </button>
+            </div>
           </div>
         `;
         return;
@@ -527,15 +534,14 @@ document.addEventListener('DOMContentLoaded', () => {
       if (filtered.length === 0) {
         container.innerHTML = `
           <div class="text-center py-12 glass-card rounded-2xl p-8 border">
-            <i class="fa-regular fa-clipboard text-4xl mb-3 text-slate-300"></i>
-            <h4 class="text-base font-semibold text-slate-700 dark:text-slate-200">No tasks for ${this.selectedDate} (${this.getCategoryName(this.currentCategory)})</h4>
-            <p class="text-xs text-slate-500 mt-1 max-w-sm mx-auto">Click "Load Default Tasks" to immediately populate your day with high-yield study goals, or create custom tasks!</p>
+            <div class="w-16 h-16 mx-auto mb-3 rounded-2xl bg-indigo-50 dark:bg-slate-800 text-indigo-500 dark:text-indigo-400 flex items-center justify-center text-3xl">
+              <i class="fa-regular fa-clipboard"></i>
+            </div>
+            <h4 class="text-base font-bold text-slate-800 dark:text-slate-100">No tasks for ${this.selectedDate}</h4>
+            <p class="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-sm mx-auto">Your to-do list is empty. Add your daily study goals and tasks!</p>
             <div class="mt-4 flex flex-wrap items-center justify-center gap-2">
-              <button onclick="window.studyPulseApp.handleLoadDefaultTasks('${this.currentCategory}')" class="px-4 py-2 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl text-xs font-bold shadow-md hover:opacity-95">
-                <i class="fa-solid fa-bolt mr-1"></i> Load ${this.currentCategory === 'ALL' ? 'Master' : this.getCategoryName(this.currentCategory)} Defaults
-              </button>
-              <button onclick="window.studyPulseApp.openTaskModal()" class="px-4 py-2 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 rounded-xl text-xs font-semibold hover:bg-slate-200">
-                <i class="fa-solid fa-plus mr-1"></i> Add Custom Task
+              <button onclick="window.studyPulseApp.openTaskModal()" class="px-5 py-2.5 bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 text-white rounded-xl text-xs font-bold shadow-md hover:opacity-95 transition transform hover:scale-105 active:scale-95 flex items-center gap-1.5">
+                <i class="fa-solid fa-plus"></i> Add New Task
               </button>
             </div>
           </div>
@@ -716,6 +722,18 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     },
 
+    async handleClearAllTasks() {
+      if (!confirm('Are you sure you want to delete all tasks? This will clear your entire task list.')) return;
+      try {
+        await window.studyPulseApi.clearAllTasks();
+        this.tasks = [];
+        this.showToast('All tasks cleared successfully!', 'info');
+        await this.loadTasks();
+      } catch (err) {
+        this.showToast('Failed to clear tasks: ' + err.message, 'error');
+      }
+    },
+
     async handleLoadDefaultTasks(category = null) {
       const targetCategory = category || this.currentCategory;
       try {
@@ -819,6 +837,18 @@ document.addEventListener('DOMContentLoaded', () => {
         await this.loadTimings();
       } catch (err) {
         this.showToast('Failed to delete timing: ' + err.message, 'error');
+      }
+    },
+
+    async handleClearAllTimings() {
+      if (!confirm('Are you sure you want to delete all study timings? This will clear your timetable.')) return;
+      try {
+        await window.studyPulseApi.clearAllTimings();
+        this.timings = [];
+        this.showToast('All study schedules cleared successfully!', 'info');
+        await this.loadTimings();
+      } catch (err) {
+        this.showToast('Failed to clear timings: ' + err.message, 'error');
       }
     },
 

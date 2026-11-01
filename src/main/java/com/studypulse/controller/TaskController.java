@@ -60,6 +60,13 @@ public class TaskController {
         return ResponseEntity.ok(Map.of("success", true, "message", "Task deleted successfully"));
     }
 
+    @DeleteMapping("/clear-all")
+    public ResponseEntity<?> clearAllTasks(
+            @RequestParam(name = "userId", defaultValue = "1") Long userId) {
+        taskService.clearAllTasks(userId);
+        return ResponseEntity.ok(Map.of("success", true, "message", "All tasks cleared successfully"));
+    }
+
     @PostMapping("/default")
     public ResponseEntity<List<TaskDto>> loadDefaultTasks(
             @RequestParam(name = "userId", defaultValue = "1") Long userId,

@@ -176,6 +176,13 @@ class StudyPulseApi {
     });
   }
 
+  async clearAllTasks() {
+    const userId = this.getUserId();
+    return this._request(`/api/tasks/clear-all?userId=${userId}`, {
+      method: 'DELETE'
+    });
+  }
+
   async loadDefaultTasks(category, dateStr) {
     const userId = this.getUserId();
     let query = `/api/tasks/default?userId=${userId}&category=${encodeURIComponent(category || 'ALL')}`;
@@ -210,6 +217,13 @@ class StudyPulseApi {
   async deleteTiming(timingId) {
     const userId = this.getUserId();
     return this._request(`/api/timings/${timingId}?userId=${userId}`, {
+      method: 'DELETE'
+    });
+  }
+
+  async clearAllTimings() {
+    const userId = this.getUserId();
+    return this._request(`/api/timings/clear-all?userId=${userId}`, {
       method: 'DELETE'
     });
   }

@@ -48,4 +48,11 @@ public class StudyTimingController {
         studyTimingService.deleteTiming(userId, timingId);
         return ResponseEntity.ok(Map.of("success", true, "message", "Study timing deleted successfully"));
     }
+
+    @DeleteMapping("/clear-all")
+    public ResponseEntity<?> clearAllTimings(
+            @RequestParam(name = "userId", defaultValue = "1") Long userId) {
+        studyTimingService.clearAllTimings(userId);
+        return ResponseEntity.ok(Map.of("success", true, "message", "All study timings cleared successfully"));
+    }
 }

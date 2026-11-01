@@ -149,8 +149,8 @@
               <button onclick="window.studyPulseApp.switchTab('tasks')" class="px-3.5 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold shadow-md">
                 View Tasks
               </button>
-              <button onclick="window.studyPulseApp.handleLoadDefaultTasks()" class="px-3.5 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-semibold hover:bg-slate-200">
-                Load Defaults
+              <button onclick="window.studyPulseApp.openTaskModal()" class="px-3.5 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-semibold hover:bg-slate-200 flex items-center gap-1">
+                <i class="fa-solid fa-plus text-[10px]"></i> Add Task
               </button>
             </div>
           </div>
@@ -260,9 +260,14 @@
           <h2 class="font-heading font-extrabold text-2xl text-slate-900 dark:text-white">Study Timings & Timetable</h2>
           <p class="text-xs text-slate-500 dark:text-slate-400">Dedicated study slots for Semester Exam, GATE Exams, Other Activities & Interview Prep</p>
         </div>
-        <button id="open-add-timing-btn" class="px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl text-xs font-bold shadow-md transition flex items-center justify-center gap-2 self-start sm:self-auto">
-          <i class="fa-solid fa-plus"></i> Add Study Timing
-        </button>
+        <div class="flex items-center gap-2 self-start sm:self-auto">
+          <button onclick="window.studyPulseApp.handleClearAllTimings()" title="Clear all study timings" class="px-3 py-2 rounded-xl text-xs font-bold text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/40 hover:bg-rose-100 dark:hover:bg-rose-900/50 border border-rose-200 dark:border-rose-900/60 shadow-sm transition flex items-center gap-1.5">
+            <i class="fa-regular fa-trash-can"></i> Clear All
+          </button>
+          <button id="open-add-timing-btn" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold shadow-md transition flex items-center justify-center gap-1.5">
+            <i class="fa-solid fa-plus"></i> Add Timing
+          </button>
+        </div>
       </div>
 
       <!-- Category Filter Pills -->
@@ -295,17 +300,10 @@
           <!-- Date selector -->
           <input type="date" id="task-date-selector" class="px-3 py-2 rounded-xl text-xs font-semibold border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500">
 
-          <!-- Default Tasks Loader Dropdown (Feature 5) -->
-          <div class="relative inline-block">
-            <select id="default-track-select" class="px-3 py-2 rounded-xl text-xs font-bold bg-amber-500 hover:bg-amber-600 text-white shadow-sm cursor-pointer border-none focus:outline-none">
-              <option value="" disabled selected>⚡ Load Default Tasks</option>
-              <option value="ALL">🌟 Load All Tracks (Master Plan)</option>
-              <option value="SEMESTER">📚 Semester Exam Defaults</option>
-              <option value="GATE">⚙️ GATE Exam Defaults</option>
-              <option value="LANGUAGE">🎯 Other Activities Defaults</option>
-              <option value="INTERVIEW">💼 Interview Prep Defaults</option>
-            </select>
-          </div>
+          <!-- Clear All Tasks Button -->
+          <button onclick="window.studyPulseApp.handleClearAllTasks()" title="Clear all tasks" class="px-3 py-2 rounded-xl text-xs font-bold text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/40 hover:bg-rose-100 dark:hover:bg-rose-900/50 border border-rose-200 dark:border-rose-900/60 shadow-sm transition flex items-center gap-1.5">
+            <i class="fa-regular fa-trash-can"></i> Clear All
+          </button>
 
           <!-- Add Task Button -->
           <button id="open-add-task-btn" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold shadow-md transition flex items-center gap-1.5">

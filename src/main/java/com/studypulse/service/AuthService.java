@@ -128,9 +128,6 @@ public class AuthService {
         user = userRepository.save(user);
 
         UserProgress progress = initUserProgressIfAbsent(user);
-        studyTimingService.initDefaultTimingsIfAbsent(user.getId());
-        taskService.initDefaultTasksIfAbsent(user.getId());
-
         return new AuthResponseDto("jwt_guest_" + user.getId(), "Welcome Guest Scholar!", user, progress);
     }
 
@@ -171,8 +168,6 @@ public class AuthService {
         user = userRepository.save(user);
 
         UserProgress progress = initUserProgressIfAbsent(user);
-        studyTimingService.initDefaultTimingsIfAbsent(user.getId());
-        taskService.initDefaultTasksIfAbsent(user.getId());
 
         String token = "jwt_user_" + user.getId() + "_" + System.currentTimeMillis();
         return new AuthResponseDto(token, "Account created successfully! Welcome, " + user.getName() + "!", user, progress);

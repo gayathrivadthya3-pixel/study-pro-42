@@ -29,12 +29,7 @@ public class TaskService {
      */
     @Transactional
     public void initDefaultTasksIfAbsent(Long userId) {
-        // Only load starter tasks if this user has never had any tasks created
-        long existingCount = taskRepository.countByUserId(userId);
-        if (existingCount > 0) {
-            return;
-        }
-        loadDefaultTasks(userId, "ALL", LocalDate.now());
+        // Disabled: users start with an empty slate and only add their own tasks
     }
 
     /**
@@ -268,6 +263,12 @@ public class TaskService {
             throw new SecurityException("Unauthorized task delete.");
         }
         taskRepository.delete(task);
+    }
+
+    @Transactional
+    public void clearAllTasks(Long userId) {
+        List<Task> tasks = taskRepository.findByUserIdOrderByScheduledDateAscScheduledTimeAsc(userId);
+        taskRepository.deleteAll(tasks);
     }
 
     public TaskDto toDto(Task task) {

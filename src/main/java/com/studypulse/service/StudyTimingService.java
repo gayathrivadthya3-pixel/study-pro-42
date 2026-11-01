@@ -24,54 +24,7 @@ public class StudyTimingService {
      */
     @Transactional
     public void initDefaultTimingsIfAbsent(Long userId) {
-        long existingCount = studyTimingRepository.countByUserId(userId);
-        if (existingCount > 0) {
-            return;
-        }
-
-        List<StudyTiming> defaults = new ArrayList<>();
-
-        // 1. SEMESTER EXAM TIMINGS
-        defaults.add(new StudyTiming(
-                userId, "SEMESTER", "Morning Semester Deep Study", "Operating Systems / Database Management",
-                "06:00", "08:30", "MON,TUE,WED,THU,FRI,SAT", true
-        ));
-        defaults.add(new StudyTiming(
-                userId, "SEMESTER", "Evening University Syllabus Revision", "Lab Practicals & Theory Answers",
-                "18:00", "20:00", "MON,TUE,WED,THU,FRI", true
-        ));
-
-        // 2. GATE EXAM TIMINGS
-        defaults.add(new StudyTiming(
-                userId, "GATE", "GATE Engineering Mathematics & Aptitude", "Calculus, Linear Algebra, Probability",
-                "09:00", "11:30", "MON,TUE,WED,THU,FRI,SAT,SUN", true
-        ));
-        defaults.add(new StudyTiming(
-                userId, "GATE", "GATE Core Technical & PYQ Drill", "Algorithms, Theory of Computation, COA PYQs",
-                "14:00", "17:00", "MON,TUE,WED,THU,FRI,SAT", true
-        ));
-
-        // 3. OTHER ACTIVITIES TIMINGS
-        defaults.add(new StudyTiming(
-                userId, "LANGUAGE", "Morning Focus & Skill Development", "Reading, Creative Skills & Habit Building",
-                "07:30", "08:15", "MON,TUE,WED,THU,FRI,SAT,SUN", true
-        ));
-        defaults.add(new StudyTiming(
-                userId, "LANGUAGE", "Evening Fitness & Personal Growth", "Workout, Journaling & Mindfulness",
-                "21:15", "22:00", "MON,TUE,WED,THU,FRI,SAT,SUN", false
-        ));
-
-        // 4. INTERVIEW PREPARATION TIMINGS
-        defaults.add(new StudyTiming(
-                userId, "INTERVIEW", "Daily LeetCode & DSA Problem Solving", "2 Medium + 1 Hard Data Structures Problem",
-                "10:00", "12:00", "MON,TUE,WED,THU,FRI,SAT", true
-        ));
-        defaults.add(new StudyTiming(
-                userId, "INTERVIEW", "System Design & Mock Behavioral Prep", "HLD/LLD, STAR method, Architecture Diagrams",
-                "19:30", "21:00", "MON,WED,FRI,SUN", true
-        ));
-
-        studyTimingRepository.saveAll(defaults);
+        // Disabled: users start with an empty slate and only add their own timings
     }
 
     public List<StudyTimingDto> getTimings(Long userId, String category) {
@@ -128,6 +81,12 @@ public class StudyTimingService {
             throw new SecurityException("Unauthorized delete.");
         }
         studyTimingRepository.delete(timing);
+    }
+
+    @Transactional
+    public void clearAllTimings(Long userId) {
+        List<StudyTiming> timings = studyTimingRepository.findByUserIdOrderByStartTimeAsc(userId);
+        studyTimingRepository.deleteAll(timings);
     }
 
     private StudyTimingDto toDto(StudyTiming timing) {
