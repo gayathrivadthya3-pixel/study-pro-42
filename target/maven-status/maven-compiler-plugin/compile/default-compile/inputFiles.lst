@@ -7,6 +7,7 @@ D:\Daily_to_do_list\src\main\java\com\studypulse\dto\StudyTimingDto.java
 D:\Daily_to_do_list\src\main\java\com\studypulse\model\Task.java
 D:\Daily_to_do_list\src\main\java\com\studypulse\dto\UserAuthDto.java
 D:\Daily_to_do_list\src\main\java\com\studypulse\model\UserProgress.java
+D:\Daily_to_do_list\src\main\java\com\studypulse\config\DatabaseConfig.java
 D:\Daily_to_do_list\src\main\java\com\studypulse\dto\TaskDto.java
 D:\Daily_to_do_list\src\main\java\com\studypulse\controller\GamificationController.java
 D:\Daily_to_do_list\src\main\java\com\studypulse\controller\ProfileController.java

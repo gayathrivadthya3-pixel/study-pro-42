@@ -11,6 +11,7 @@ com\studypulse\service\TaskService.class
 com\studypulse\service\StudyTimingService.class
 com\studypulse\dto\GoogleAuthDto.class
 com\studypulse\service\SmsService.class
+com\studypulse\config\DatabaseConfig$ParsedCredentials.class
 com\studypulse\controller\StudyTimingController.class
 com\studypulse\model\UserProgress.class
 com\studypulse\dto\TaskDto.class
@@ -27,6 +28,7 @@ com\studypulse\model\User.class
 com\studypulse\controller\DatabaseStatusController.class
 com\studypulse\model\Task.class
 com\studypulse\repository\UserProgressRepository.class
+com\studypulse\config\DatabaseConfig.class
 com\studypulse\controller\ProfileController.class
 com\studypulse\dto\OtpVerifyDto.class
 com\studypulse\dto\AuthResponseDto.class

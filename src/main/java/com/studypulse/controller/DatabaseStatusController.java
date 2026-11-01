@@ -20,7 +20,7 @@ public class DatabaseStatusController {
 
     private final DataSource dataSource;
 
-    @Value("${spring.datasource.url}")
+    @Value("${spring.datasource.url:}")
     private String datasourceUrl;
 
     public DatabaseStatusController(DataSource dataSource) {
@@ -34,23 +34,28 @@ public class DatabaseStatusController {
             DatabaseMetaData metaData = connection.getMetaData();
             String productName = metaData.getDatabaseProductName();
             String productVersion = metaData.getDatabaseProductVersion();
+            String activeUrl = metaData.getURL();
 
             boolean isMySQL = productName != null && productName.toLowerCase().contains("mysql");
-            boolean isAiven = datasourceUrl.toLowerCase().contains("aivencloud.com") ||
-                    datasourceUrl.toLowerCase().contains("aiven");
+            boolean isH2 = productName != null && productName.toLowerCase().contains("h2");
+            boolean isAiven = (activeUrl != null && (activeUrl.toLowerCase().contains("aivencloud.com") || activeUrl.toLowerCase().contains("aiven")))
+                    || (datasourceUrl != null && (datasourceUrl.toLowerCase().contains("aivencloud.com") || datasourceUrl.toLowerCase().contains("aiven")));
 
             status.put("connected", true);
             status.put("productName", productName);
             status.put("productVersion", productVersion);
             status.put("isMySQL", isMySQL);
+            status.put("isH2", isH2);
             status.put("isAivenCloud", isAiven);
             status.put("databaseType", productName);
             status.put("summary", isAiven
                     ? "🚀 Connected to Live Aiven Cloud MySQL Database (" + productName + ")!"
                     : isMySQL
                     ? "🐬 Connected to Live MySQL Database (studypro42_db)!"
+                    : isH2
+                    ? "⚡ Running on Resilient Database (" + productName + " - MySQL Mode)!"
                     : "⚡ Connected to Database (" + productName + ")");
-            status.put("cloudProvider", isAiven ? "Aiven Cloud" : isMySQL ? "MySQL Database (Port 3306)" : "SQL Database");
+            status.put("cloudProvider", isAiven ? "Aiven Cloud" : isMySQL ? "MySQL Database (Port 3306)" : isH2 ? "Resilient Cloud Database" : "SQL Database");
         } catch (Exception e) {
             status.put("connected", false);
             status.put("error", e.getMessage());

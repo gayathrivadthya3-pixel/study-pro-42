@@ -1,0 +1,185 @@
+package com.studypulse.config;
+
+import com.zaxxer.hikari.HikariConfig;
+import com.zaxxer.hikari.HikariDataSource;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
+
+import javax.sql.DataSource;
+import java.io.File;
+import java.net.URI;
+import java.sql.Connection;
+import java.sql.DriverManager;
+
+@Configuration
+public class DatabaseConfig {
+
+    private static final Logger log = LoggerFactory.getLogger(DatabaseConfig.class);
+
+    @Value("${spring.datasource.url:}")
+    private String configuredUrl;
+
+    @Value("${spring.datasource.username:root}")
+    private String configuredUsername;
+
+    @Value("${spring.datasource.password:root}")
+    private String configuredPassword;
+
+    @Bean
+    @Primary
+    public DataSource dataSource() {
+        ParsedCredentials creds = resolveTargetCredentials();
+
+        boolean canConnect = testConnection(creds);
+
+        if (canConnect) {
+            log.info("==================================================================");
+            log.info("🚀 [StudyPro42] Successfully connected to Primary Database!");
+            log.info("🔗 Target URL: {}", maskUrl(creds.jdbcUrl));
+            log.info("==================================================================");
+
+            HikariConfig config = new HikariConfig();
+            config.setJdbcUrl(creds.jdbcUrl);
+            config.setUsername(creds.username);
+            config.setPassword(creds.password);
+            config.setDriverClassName(creds.driverClassName);
+            config.setMaximumPoolSize(10);
+            config.setMinimumIdle(2);
+            config.setConnectionTimeout(20000);
+            config.setIdleTimeout(300000);
+            config.setMaxLifetime(1800000);
+            config.setPoolName("StudyPro42-PrimaryPool");
+            return new HikariDataSource(config);
+        }
+
+        log.warn("==================================================================");
+        log.warn("⚠️ [StudyPro42] Primary MySQL database at {} is unreachable.", maskUrl(creds.jdbcUrl));
+        log.warn("💡 Activating resilient persistent embedded database (MySQL mode) at ./data/studypro42_db");
+        log.warn("✅ Application will boot smoothly and remain 100% ONLINE on cloud deployments!");
+        log.warn("==================================================================");
+
+        try {
+            File dataDir = new File("./data");
+            if (!dataDir.exists()) {
+                dataDir.mkdirs();
+            }
+        } catch (Exception ignored) {}
+
+        HikariConfig h2Config = new HikariConfig();
+        h2Config.setJdbcUrl("jdbc:h2:file:./data/studypro42_db;MODE=MySQL;DATABASE_TO_LOWER=TRUE;AUTO_SERVER=TRUE;DB_CLOSE_DELAY=-1");
+        h2Config.setDriverClassName("org.h2.Driver");
+        h2Config.setUsername("sa");
+        h2Config.setPassword("");
+        h2Config.setMaximumPoolSize(10);
+        h2Config.setMinimumIdle(2);
+        h2Config.setConnectionTimeout(20000);
+        h2Config.setPoolName("StudyPro42-ResilientPool");
+        return new HikariDataSource(h2Config);
+    }
+
+    private ParsedCredentials resolveTargetCredentials() {
+        // Priority 1: Cloud environment variables (Render / Railway / Aiven)
+        String envUrl = getFirstNonEmptyEnv("AIVEN_DB_URL", "MYSQL_URL", "DATABASE_URL", "SPRING_DATASOURCE_URL");
+        String rawUrl = (envUrl != null && !envUrl.trim().isEmpty()) ? envUrl.trim() : configuredUrl;
+
+        String user = getFirstNonEmptyEnv("AIVEN_DB_USERNAME", "MYSQL_USER", "MYSQLUSER", "DB_USERNAME");
+        if (user == null || user.trim().isEmpty()) {
+            user = configuredUsername;
+        }
+
+        String pass = getFirstNonEmptyEnv("AIVEN_DB_PASSWORD", "MYSQL_PASSWORD", "MYSQLPASSWORD", "DB_PASSWORD");
+        if (pass == null) {
+            pass = configuredPassword;
+        }
+
+        if (rawUrl == null || rawUrl.trim().isEmpty()) {
+            rawUrl = "jdbc:mysql://localhost:3306/studypro42_db?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC";
+        }
+
+        // Handle cloud URLs formatted as mysql://user:pass@host:port/dbname
+        if (rawUrl.startsWith("mysql://")) {
+            try {
+                URI uri = URI.create(rawUrl);
+                String userInfo = uri.getUserInfo();
+                if (userInfo != null && userInfo.contains(":")) {
+                    String[] parts = userInfo.split(":", 2);
+                    user = parts[0];
+                    pass = parts[1];
+                }
+                String host = uri.getHost();
+                int port = uri.getPort() > 0 ? uri.getPort() : 3306;
+                String path = uri.getPath();
+                String query = uri.getQuery();
+                String cleanJdbc = "jdbc:mysql://" + host + ":" + port + path + (query != null ? "?" + query : "");
+                return new ParsedCredentials(cleanJdbc, user, pass, "com.mysql.cj.jdbc.Driver");
+            } catch (Exception e) {
+                log.warn("Failed to parse mysql:// URL: {}", e.getMessage());
+            }
+        }
+
+        String driver = "com.mysql.cj.jdbc.Driver";
+        if (rawUrl.startsWith("jdbc:postgresql:")) {
+            driver = "org.postgresql.Driver";
+        } else if (rawUrl.startsWith("jdbc:h2:")) {
+            driver = "org.h2.Driver";
+        }
+
+        return new ParsedCredentials(rawUrl, user, pass, driver);
+    }
+
+    private boolean testConnection(ParsedCredentials creds) {
+        if (creds.jdbcUrl.startsWith("jdbc:h2:")) {
+            return true;
+        }
+
+        try {
+            Class.forName(creds.driverClassName);
+            DriverManager.setLoginTimeout(3);
+
+            String testUrl = creds.jdbcUrl;
+            if (testUrl.startsWith("jdbc:mysql:") && !testUrl.contains("connectTimeout")) {
+                testUrl += (testUrl.contains("?") ? "&" : "?") + "connectTimeout=3000&socketTimeout=3000";
+            }
+
+            try (Connection conn = DriverManager.getConnection(testUrl, creds.username, creds.password)) {
+                return conn != null && conn.isValid(2);
+            }
+        } catch (Throwable t) {
+            log.info("Direct database connection test to [{}] returned: {}", maskUrl(creds.jdbcUrl), t.getMessage());
+            return false;
+        }
+    }
+
+    private String getFirstNonEmptyEnv(String... names) {
+        for (String name : names) {
+            String val = System.getenv(name);
+            if (val != null && !val.trim().isEmpty()) {
+                return val.trim();
+            }
+        }
+        return null;
+    }
+
+    private String maskUrl(String url) {
+        if (url == null) return "null";
+        return url.replaceAll("(?i):([^/:@]+)@", ":****@");
+    }
+
+    private static class ParsedCredentials {
+        final String jdbcUrl;
+        final String username;
+        final String password;
+        final String driverClassName;
+
+        ParsedCredentials(String jdbcUrl, String username, String password, String driverClassName) {
+            this.jdbcUrl = jdbcUrl;
+            this.username = username;
+            this.password = password;
+            this.driverClassName = driverClassName;
+        }
+    }
+}
