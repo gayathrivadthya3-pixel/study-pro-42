@@ -1,0 +1,1020 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#6366f1">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  <title>Study Pro 42 - Gamified Study & To-Do Planner</title>
+  
+  <!-- Favicon & PWA Manifest -->
+  <link rel="manifest" href="/manifest.json">
+  <link rel="icon" href="https://api.dicebear.com/7.x/shapes/svg?seed=StudyPro42&backgroundColor=6366f1" type="image/svg+xml">
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#eef2ff',
+              100: '#e0e7ff',
+              500: '#6366f1',
+              600: '#4f46e5',
+              700: '#4338ca',
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- FontAwesome Icons CDN -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+  <!-- Canvas Confetti CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
+
+  <!-- Custom Styles -->
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body class="bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 min-h-screen transition-colors duration-200">
+
+  <!-- Top Navigation Bar -->
+  <header class="sticky top-0 z-40 glass-panel border-b border-slate-200/80 dark:border-slate-800/80">
+    <div class="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
+      <!-- App Logo -->
+      <div class="flex items-center gap-3 cursor-pointer" onclick="window.studyPulseApp.switchTab('dashboard')">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 via-indigo-500 to-purple-500 flex items-center justify-center text-white shadow-lg shadow-indigo-500/30 font-black text-sm tracking-wider">
+          42
+        </div>
+        <div>
+          <span class="font-heading font-extrabold text-lg tracking-tight bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">Study Pro 42</span>
+          <span class="hidden md:inline-block ml-2 text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-indigo-100 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300">Gamified Study Hub</span>
+        </div>
+      </div>
+
+      <!-- Desktop Nav Items -->
+      <nav class="hidden md:flex items-center gap-1 font-medium text-sm">
+        <button data-tab="dashboard" class="px-3.5 py-1.5 rounded-xl transition text-indigo-600 dark:text-indigo-400 font-bold hover:bg-slate-100 dark:hover:bg-slate-800">
+          <i class="fa-solid fa-chart-pie mr-1.5"></i> Dashboard
+        </button>
+        <button data-tab="timings" class="px-3.5 py-1.5 rounded-xl transition text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800">
+          <i class="fa-regular fa-clock mr-1.5"></i> Study Timings
+        </button>
+        <button data-tab="tasks" class="px-3.5 py-1.5 rounded-xl transition text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800">
+          <i class="fa-regular fa-calendar-check mr-1.5"></i> Daily Tasks
+        </button>
+        <button data-tab="gamify" class="px-3.5 py-1.5 rounded-xl transition text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800">
+          <i class="fa-solid fa-award mr-1.5"></i> Gamified View
+        </button>
+        <button data-tab="profile" class="px-3.5 py-1.5 rounded-xl transition text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800">
+          <i class="fa-regular fa-user mr-1.5"></i> Profile
+        </button>
+      </nav>
+
+      <!-- Right Header Actions (Database status, User profile pill) -->
+      <div class="flex items-center gap-2">
+        <!-- Database Cloud Status Pill -->
+        <div id="db-status-badge" class="hidden sm:inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-800 dark:bg-blue-950/60 dark:text-blue-300 border border-blue-200 dark:border-blue-800 shadow-sm" title="Database status">
+          <span class="w-2 h-2 rounded-full bg-blue-600 mr-1.5 animate-pulse"></span> MySQL Database
+        </div>
+
+        <!-- Install Mobile App Button (PWA) -->
+        <button id="pwa-install-btn" class="hidden px-2.5 py-1 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-bold text-xs shadow-sm transition flex items-center gap-1.5 animate-pulse" title="Install App on Phone / Desktop">
+          <i class="fa-solid fa-mobile-screen"></i>
+          <span class="hidden sm:inline">Install App</span>
+        </button>
+
+        <!-- Refresh / Cache Purge Button -->
+        <button onclick="window.studyPulseApp.handleHardRefresh()" title="Refresh & Clear Cached UI" class="p-2 rounded-xl text-slate-500 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition text-sm">
+          <i class="fa-solid fa-arrows-rotate"></i>
+        </button>
+
+        <!-- User Profile / Login Pill -->
+        <div class="flex items-center gap-2 pl-2 border-l border-slate-200 dark:border-slate-800">
+          <img id="user-avatar-img" src="https://api.dicebear.com/7.x/bottts/svg?seed=Scholar" alt="User" class="w-8 h-8 rounded-full border border-indigo-300 dark:border-indigo-700 bg-indigo-50 dark:bg-slate-800">
+          <span id="user-display-name" class="hidden sm:inline-block text-xs font-bold text-slate-800 dark:text-slate-200">Scholar Guest</span>
+          <button id="open-login-btn" class="px-3 py-1 rounded-xl text-xs font-bold bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm transition">
+            Sign In
+          </button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="max-w-6xl mx-auto px-4 py-6">
+
+    <!-- DAILY / WEEKLY APPRECIATION BANNER (Feature 8) -->
+    <div id="daily-appreciation-banner" class="hidden mb-6 p-4 rounded-2xl bg-gradient-to-r from-amber-500 via-orange-500 to-rose-500 text-white shadow-xl shadow-amber-500/20 relative overflow-hidden">
+      <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 relative z-10">
+        <div class="flex items-center gap-3">
+          <div class="w-12 h-12 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center text-2xl">
+            🏆
+          </div>
+          <div>
+            <h4 id="appreciation-banner-headline" class="font-heading font-extrabold text-base md:text-lg">Outstanding Performance Today!</h4>
+            <p id="appreciation-banner-msg" class="text-xs md:text-sm text-white/90">You've conquered your target study sessions across Semester, GATE, and Interview tracks!</p>
+          </div>
+        </div>
+        <button onclick="window.studyPulseApp.openAppreciationModal('DAILY')" class="px-4 py-2 bg-white text-amber-700 hover:bg-amber-50 rounded-xl font-bold text-xs shadow-md transition self-stretch sm:self-auto flex items-center justify-center gap-1.5">
+          <i class="fa-solid fa-trophy"></i> Claim Trophy & Bonus XP
+        </button>
+      </div>
+      <div class="absolute -right-8 -bottom-8 w-32 h-32 rounded-full bg-white/10 pointer-events-none"></div>
+    </div>
+
+    <!-- ======================================================== -->
+    <!-- SECTION 1: DASHBOARD -->
+    <!-- ======================================================== -->
+    <section id="section-dashboard" class="space-y-6">
+      
+      <!-- Hero Overview Grid -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
+        <!-- Daily Completion & XP Widget (Feature 3 & 4) -->
+        <div class="glass-card p-6 rounded-3xl border flex items-center justify-between gap-4">
+          <div>
+            <span class="text-xs font-bold uppercase tracking-wider text-indigo-600 dark:text-indigo-400">Daily Mastery</span>
+            <h3 class="text-2xl font-heading font-black mt-1" id="dash-task-fraction">0 / 0 Tasks Done</h3>
+            <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Keep your streak flaming hot today!</p>
+            <div class="mt-4 flex items-center gap-2">
+              <button onclick="window.studyPulseApp.switchTab('tasks')" class="px-3.5 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold shadow-md">
+                View Tasks
+              </button>
+              <button onclick="window.studyPulseApp.handleLoadDefaultTasks()" class="px-3.5 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-semibold hover:bg-slate-200">
+                Load Defaults
+              </button>
+            </div>
+          </div>
+
+          <!-- Circular SVG Progress Ring -->
+          <div class="relative w-28 h-28 flex-shrink-0 flex items-center justify-center">
+            <svg class="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
+              <circle cx="50" cy="50" r="45" stroke="currentColor" stroke-width="8" class="text-slate-200 dark:text-slate-800" fill="transparent" />
+              <circle id="dash-circle-progress" cx="50" cy="50" r="45" stroke="currentColor" stroke-width="8" stroke-dasharray="282.7" stroke-dashoffset="282.7" stroke-linecap="round" class="text-indigo-600 dark:text-indigo-500 transition-all duration-700 ease-out" fill="transparent" />
+            </svg>
+            <div class="absolute inset-0 flex flex-col items-center justify-center">
+              <span id="dash-percent-text" class="text-xl font-heading font-black">0%</span>
+              <span class="text-[9px] uppercase tracking-wider font-bold text-slate-400">Done</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Gamification Snapshot Card -->
+        <div class="glass-card p-6 rounded-3xl border flex flex-col justify-between">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold uppercase tracking-wider text-purple-600 dark:text-purple-400">Scholar Rank</span>
+            <div class="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300 font-black text-xs">
+              <i class="fa-solid fa-fire text-amber-500 flame-active"></i>
+              <span id="dash-streak-pill">1 Day Streak</span>
+            </div>
+          </div>
+          <div class="my-3">
+            <h4 class="text-xl font-heading font-extrabold text-slate-900 dark:text-white" id="dash-level-title-display">Novice Scholar</h4>
+            <p class="text-xs text-slate-500 dark:text-slate-400">Earn XP by completing daily tasks and study sessions.</p>
+          </div>
+          <div>
+            <div class="w-full bg-slate-200 dark:bg-slate-800 rounded-full h-2.5 overflow-hidden progress-shimmer">
+              <div id="dash-level-bar" class="bg-gradient-to-r from-indigo-500 to-purple-500 h-2.5 rounded-full transition-all duration-500" style="width: 25%"></div>
+            </div>
+            <div class="flex items-center justify-between text-[11px] font-semibold text-slate-500 mt-2">
+              <span id="dash-current-xp-text">50 XP</span>
+              <button onclick="window.studyPulseApp.switchTab('gamify')" class="text-indigo-600 dark:text-indigo-400 hover:underline">Full Gamified View →</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Pomodoro / Study Focus Timer Card -->
+        <div id="pomodoro-timer-card" class="glass-card p-6 rounded-3xl border flex flex-col justify-between bg-gradient-to-br from-indigo-600/5 to-purple-600/5">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold uppercase tracking-wider text-indigo-600 dark:text-indigo-400 flex items-center gap-1.5">
+              <i class="fa-solid fa-stopwatch"></i> Focus Pomodoro
+            </span>
+            <span class="text-[11px] px-2 py-0.5 rounded-full bg-indigo-100 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300 font-bold" id="pomodoro-task-label">Active Study Block</span>
+          </div>
+          <div class="text-center my-2">
+            <div id="pomodoro-timer-display" class="font-heading font-black text-4xl tracking-tight text-indigo-600 dark:text-indigo-400">
+              25:00
+            </div>
+            <p class="text-[11px] text-slate-400 mt-1">Deep focus with pleasant interval chimes</p>
+          </div>
+          <div class="flex items-center justify-center gap-2">
+            <button id="pomodoro-toggle-btn" onclick="window.studyPulseApp.togglePomodoro()" class="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs shadow-md transition flex items-center gap-1">
+              <i class="fa-solid fa-play"></i> Start Session
+            </button>
+            <button onclick="window.studyPulseApp.resetPomodoro()" class="px-3 py-2 rounded-xl bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-semibold hover:bg-slate-300 transition">
+              Reset
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 4 Core Study Tracks (Semester, GATE, Other Activities, Interview) Overview -->
+      <div>
+        <div class="flex items-center justify-between mb-4">
+          <div>
+            <h3 class="font-heading font-extrabold text-lg text-slate-900 dark:text-white">Study Tracks & Timings</h3>
+            <p class="text-xs text-slate-500 dark:text-slate-400">Timetable tailored for Semester Exam, GATE, Other Activities & Interview</p>
+          </div>
+          <button onclick="window.studyPulseApp.switchTab('timings')" class="text-xs font-bold text-indigo-600 dark:text-indigo-400 hover:underline">
+            Manage Timings →
+          </button>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4" id="dashboard-timings-grid">
+          <!-- Populated dynamically via JS -->
+        </div>
+      </div>
+
+      <!-- Today's Upcoming Tasks Highlight -->
+      <div class="glass-card p-6 rounded-3xl border">
+        <div class="flex items-center justify-between mb-4">
+          <div class="flex items-center gap-2">
+            <h3 class="font-heading font-extrabold text-base text-slate-900 dark:text-white">Priority Tasks Today</h3>
+            <span class="text-xs px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-semibold" id="dash-urgent-count">Today</span>
+          </div>
+          <button onclick="window.studyPulseApp.openTaskModal()" class="px-3 py-1.5 bg-indigo-600 text-white rounded-xl text-xs font-bold shadow-sm hover:bg-indigo-700 transition">
+            <i class="fa-solid fa-plus mr-1"></i> Add Task
+          </button>
+        </div>
+        <div class="space-y-2.5" id="dash-urgent-tasks-list">
+          <!-- Populated dynamically via JS -->
+        </div>
+      </div>
+
+    </section>
+
+    <!-- ======================================================== -->
+    <!-- SECTION 2: STUDY TIMINGS PLANNER -->
+    <!-- ======================================================== -->
+    <section id="section-timings" class="hidden space-y-6">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div>
+          <h2 class="font-heading font-extrabold text-2xl text-slate-900 dark:text-white">Study Timings & Timetable</h2>
+          <p class="text-xs text-slate-500 dark:text-slate-400">Dedicated study slots for Semester Exam, GATE Exams, Other Activities & Interview Prep</p>
+        </div>
+        <button id="open-add-timing-btn" class="px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl text-xs font-bold shadow-md transition flex items-center justify-center gap-2 self-start sm:self-auto">
+          <i class="fa-solid fa-plus"></i> Add Study Timing
+        </button>
+      </div>
+
+      <!-- Category Filter Pills -->
+      <div class="flex flex-wrap items-center gap-2 pb-2 border-b border-slate-200 dark:border-slate-800">
+        <button data-category-filter="ALL" class="px-3.5 py-1.5 rounded-xl text-xs font-bold bg-indigo-600 text-white shadow-md">All Tracks</button>
+        <button data-category-filter="SEMESTER" class="px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200">📚 Semester Exam</button>
+        <button data-category-filter="GATE" class="px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200">⚙️ GATE Exams</button>
+        <button data-category-filter="LANGUAGE" class="px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200">🎯 Other Activities</button>
+        <button data-category-filter="INTERVIEW" class="px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200">💼 Interview Prep</button>
+      </div>
+
+      <!-- Timings List Container -->
+      <div class="space-y-3" id="timings-container">
+        <!-- Populated dynamically via JS -->
+      </div>
+    </section>
+
+    <!-- ======================================================== -->
+    <!-- SECTION 3: DAILY TO-DO TASKS -->
+    <!-- ======================================================== -->
+    <section id="section-tasks" class="hidden space-y-6">
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <h2 class="font-heading font-extrabold text-2xl text-slate-900 dark:text-white">Daily To-Do Tasks</h2>
+          <p class="text-xs text-slate-500 dark:text-slate-400">Complete tasks to earn XP, maintain your streak, and unlock celebration trophies!</p>
+        </div>
+
+        <!-- Task Toolbar (Date picker, Default Tasks loader, Add task) -->
+        <div class="flex flex-wrap items-center gap-2">
+          <!-- Date selector -->
+          <input type="date" id="task-date-selector" class="px-3 py-2 rounded-xl text-xs font-semibold border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+
+          <!-- Default Tasks Loader Dropdown (Feature 5) -->
+          <div class="relative inline-block">
+            <select id="default-track-select" class="px-3 py-2 rounded-xl text-xs font-bold bg-amber-500 hover:bg-amber-600 text-white shadow-sm cursor-pointer border-none focus:outline-none">
+              <option value="" disabled selected>⚡ Load Default Tasks</option>
+              <option value="ALL">🌟 Load All Tracks (Master Plan)</option>
+              <option value="SEMESTER">📚 Semester Exam Defaults</option>
+              <option value="GATE">⚙️ GATE Exam Defaults</option>
+              <option value="LANGUAGE">🎯 Other Activities Defaults</option>
+              <option value="INTERVIEW">💼 Interview Prep Defaults</option>
+            </select>
+          </div>
+
+          <!-- Add Task Button -->
+          <button id="open-add-task-btn" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold shadow-md transition flex items-center gap-1.5">
+            <i class="fa-solid fa-plus"></i> Add Task
+          </button>
+        </div>
+      </div>
+
+      <!-- Category Filter Chips -->
+      <div class="flex flex-wrap items-center gap-2 pb-2 border-b border-slate-200 dark:border-slate-800">
+        <button data-category-filter="ALL" class="px-3 py-1.5 rounded-xl text-xs font-bold bg-indigo-600 text-white shadow-md">All</button>
+        <button data-category-filter="SEMESTER" class="px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200">📚 Semester</button>
+        <button data-category-filter="GATE" class="px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200">⚙️ GATE</button>
+        <button data-category-filter="LANGUAGE" class="px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200">🎯 Other Activities</button>
+        <button data-category-filter="INTERVIEW" class="px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200">💼 Interview</button>
+        <button data-category-filter="GENERAL" class="px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200">📝 General</button>
+      </div>
+
+      <!-- Tasks List Container -->
+      <div class="space-y-3" id="tasks-container">
+        <!-- Populated dynamically via JS -->
+      </div>
+    </section>
+
+    <!-- ======================================================== -->
+    <!-- SECTION 4: GAMIFIED PROGRESS VIEW -->
+    <!-- ======================================================== -->
+    <section id="section-gamify" class="hidden space-y-6">
+      <div>
+        <h2 class="font-heading font-extrabold text-2xl text-slate-900 dark:text-white">Overall Progress in Gamified View</h2>
+        <p class="text-xs text-slate-500 dark:text-slate-400">Level up your study career from Novice Scholar to Legendary Polymath!</p>
+      </div>
+
+      <!-- Hero Level Badge Card -->
+      <div class="glass-card p-6 md:p-8 rounded-3xl border relative overflow-hidden bg-gradient-to-r from-indigo-900 via-slate-900 to-purple-950 text-white">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 relative z-10">
+          <div class="flex items-center gap-5">
+            <div class="w-20 h-20 rounded-3xl bg-gradient-to-tr from-amber-400 via-rose-500 to-purple-600 flex items-center justify-center text-3xl font-black shadow-2xl shadow-amber-500/30 border-2 border-white/20">
+              <i class="fa-solid fa-crown text-yellow-300"></i>
+            </div>
+            <div>
+              <span id="gamify-level-num" class="text-xs font-extrabold uppercase tracking-widest text-amber-400">LEVEL 1</span>
+              <h3 id="gamify-level-title" class="text-2xl md:text-3xl font-heading font-black">Novice Scholar</h3>
+              <p class="text-xs text-slate-300 mt-1">Conquer Semester, GATE, Other Activities & Interview goals to rank up.</p>
+            </div>
+          </div>
+
+          <!-- Streak & Stats Badges -->
+          <div class="flex items-center gap-3 sm:gap-4 flex-wrap">
+            <div class="text-center px-4 py-2 rounded-2xl bg-white/10 backdrop-blur-md border border-white/10 min-w-[70px]">
+              <i class="fa-solid fa-fire text-amber-400 text-xl flame-active"></i>
+              <div id="gamify-streak-count" class="font-heading font-black text-lg">1 Day</div>
+              <span class="text-[10px] text-slate-300 uppercase tracking-wider font-semibold">Streak</span>
+            </div>
+            <div class="text-center px-4 py-2 rounded-2xl bg-white/10 backdrop-blur-md border border-white/10 min-w-[70px]">
+              <i class="fa-solid fa-circle-check text-emerald-400 text-xl"></i>
+              <div id="gamify-tasks-completed" class="font-heading font-black text-lg">0</div>
+              <span class="text-[10px] text-slate-300 uppercase tracking-wider font-semibold">Done</span>
+            </div>
+            <!-- Overall Progress Percentage Badge (100% View) -->
+            <div class="text-center px-4 py-2 rounded-2xl bg-white/10 backdrop-blur-md border border-amber-400/30 min-w-[75px] shadow-lg shadow-amber-500/10">
+              <i class="fa-solid fa-percent text-amber-400 text-xl"></i>
+              <div id="gamify-progress-percent-badge" class="font-heading font-black text-lg text-amber-300">0%</div>
+              <span class="text-[10px] text-amber-200 uppercase tracking-wider font-semibold">Progress</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Level XP Progress Bar with Percentage -->
+        <div class="mt-6 relative z-10">
+          <div class="flex items-center justify-between text-xs font-semibold text-slate-300 mb-2">
+            <div class="flex items-center gap-2">
+              <span>XP Progress</span>
+              <span id="gamify-percent-pill" class="px-2.5 py-0.5 rounded-full bg-gradient-to-r from-amber-500 via-rose-500 to-indigo-500 text-white font-black text-[11px] shadow-sm tracking-wide">
+                0%
+              </span>
+            </div>
+            <div class="flex items-center gap-2">
+              <span id="gamify-percent-text" class="text-amber-300 font-extrabold text-sm">0%</span>
+              <span class="text-slate-500 font-normal">|</span>
+              <div>
+                <span id="gamify-total-xp" class="text-amber-400 font-bold">50 XP</span> / <span id="gamify-next-xp">150 XP</span>
+              </div>
+            </div>
+          </div>
+          <div class="w-full bg-slate-800 rounded-full h-4 overflow-hidden progress-shimmer p-0.5 border border-white/10 relative">
+            <div id="gamify-xp-bar-fill" class="bg-gradient-to-r from-amber-400 via-rose-500 to-indigo-500 h-full rounded-full transition-all duration-700 flex items-center justify-end pr-2 text-[10px] font-black text-white" style="width: 25%">
+              <span id="gamify-bar-inner-percent">25%</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="absolute -right-16 -top-16 w-56 h-56 rounded-full bg-indigo-500/20 blur-3xl pointer-events-none"></div>
+      </div>
+
+      <!-- Weekly Consistency Trigger Card -->
+      <div class="glass-card p-5 rounded-3xl border flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div>
+          <h4 class="font-heading font-bold text-base text-slate-900 dark:text-white flex items-center gap-2">
+            <i class="fa-solid fa-trophy text-amber-500"></i> Weekly Performance Report
+          </h4>
+          <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Evaluate your consistency over the last 7 days and claim weekly honors!</p>
+        </div>
+        <button onclick="window.studyPulseApp.openAppreciationModal('WEEKLY')" class="px-4 py-2 bg-gradient-to-r from-amber-500 to-purple-600 text-white rounded-xl text-xs font-bold shadow-md hover:opacity-95 transition">
+          <i class="fa-solid fa-award mr-1"></i> View Weekly Appreciation
+        </button>
+      </div>
+
+      <!-- Badges Showcase -->
+      <div>
+        <h3 class="font-heading font-extrabold text-lg text-slate-900 dark:text-white mb-3">Trophies & Achievement Badges</h3>
+        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3" id="badges-collection-grid">
+          <!-- Populated dynamically via JS -->
+        </div>
+      </div>
+
+      <!-- Level Ranks Roadmap -->
+      <div class="glass-card p-6 rounded-3xl border">
+        <h3 class="font-heading font-extrabold text-base text-slate-900 dark:text-white mb-3">Scholar Progression Ranks</h3>
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-3 text-xs">
+          <div class="p-3 rounded-xl bg-slate-100 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700">
+            <span class="font-black text-indigo-600">LVL 1</span>: Novice Scholar (0 XP)
+          </div>
+          <div class="p-3 rounded-xl bg-slate-100 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700">
+            <span class="font-black text-indigo-600">LVL 2</span>: Disciplined Apprentice (150 XP)
+          </div>
+          <div class="p-3 rounded-xl bg-slate-100 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700">
+            <span class="font-black text-indigo-600">LVL 3</span>: Problem Solver (400 XP)
+          </div>
+          <div class="p-3 rounded-xl bg-slate-100 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700">
+            <span class="font-black text-indigo-600">LVL 4</span>: GATE Strategist (800 XP)
+          </div>
+          <div class="p-3 rounded-xl bg-slate-100 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700">
+            <span class="font-black text-indigo-600">LVL 5</span>: Polyglot Explorer (1400 XP)
+          </div>
+          <div class="p-3 rounded-xl bg-slate-100 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700">
+            <span class="font-black text-purple-600">LVL 6</span>: Interview Ace (2200 XP)
+          </div>
+          <div class="p-3 rounded-xl bg-slate-100 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700">
+            <span class="font-black text-purple-600">LVL 7</span>: Academic Titan (3200 XP)
+          </div>
+          <div class="p-3 rounded-xl bg-slate-100 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700">
+            <span class="font-black text-purple-600">LVL 8</span>: Master of Systems (4500 XP)
+          </div>
+          <div class="p-3 rounded-xl bg-slate-100 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700">
+            <span class="font-black text-amber-500">LVL 9</span>: Grandmaster Scholar (6000 XP)
+          </div>
+          <div class="p-3 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-300 dark:border-amber-800">
+            <span class="font-black text-amber-600">LVL 10</span>: Legendary Polymath (8000+ XP)
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======================================================== -->
+    <!-- SECTION 5: PROFILE TAB -->
+    <!-- ======================================================== -->
+    <!-- ======================================================== -->
+    <!-- TAB 5: SCHOLAR PROFILE, USER PROGRESS & TASKS COMPLETED (Feature 6) -->
+    <!-- ======================================================== -->
+    <section id="section-profile" class="hidden space-y-6">
+      <div class="flex items-center justify-between">
+        <div>
+          <h2 class="font-heading font-extrabold text-2xl text-slate-900 dark:text-white">Scholar Profile &amp; Progress</h2>
+          <p class="text-xs text-slate-500 dark:text-slate-400">Account username, user progress, and tasks completed details</p>
+        </div>
+        <button onclick="window.studyPulseApp.handleLogout()" class="px-3.5 py-1.5 rounded-xl border border-rose-300 dark:border-rose-800 text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 text-xs font-bold transition flex items-center gap-1.5 shadow-sm">
+          <i class="fa-solid fa-arrow-right-from-bracket"></i> Log Out
+        </button>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+        <!-- CARD 1: USERNAME & ACCOUNT CREDENTIALS -->
+        <div class="glass-card p-6 rounded-3xl border border-indigo-200/80 dark:border-indigo-900/50 shadow-sm space-y-5">
+          <div class="flex items-center gap-3.5 pb-4 border-b border-slate-200 dark:border-slate-800">
+            <img id="profile-avatar-large" src="https://api.dicebear.com/7.x/bottts/svg?seed=Scholar" alt="Avatar" class="w-14 h-14 rounded-2xl border-2 border-indigo-500 bg-indigo-50 dark:bg-slate-800 p-1">
+            <div>
+              <span class="text-[10px] font-bold uppercase tracking-wider text-indigo-600 dark:text-indigo-400">Scholar Username</span>
+              <h3 id="profile-username-main" class="font-heading font-black text-xl text-slate-900 dark:text-white font-mono">@scholar</h3>
+              <span class="inline-flex items-center text-[11px] font-semibold text-emerald-600 dark:text-emerald-400 gap-1.5 mt-0.5">
+                <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> MySQL Stored &amp; Active
+              </span>
+            </div>
+          </div>
+
+          <div>
+            <h4 class="font-heading font-bold text-sm text-slate-900 dark:text-white mb-1 flex items-center gap-2">
+              <i class="fa-solid fa-key text-indigo-600"></i> Edit Username &amp; Password
+            </h4>
+            <p class="text-[11px] text-slate-500 dark:text-slate-400 mb-4">
+              Edit your unique username or update password at any time.
+            </p>
+
+            <form id="credentials-form" onsubmit="window.studyPulseApp.handleUpdateCredentials(event)" class="space-y-3">
+              <div>
+                <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Edit Username</label>
+                <div class="relative">
+                  <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                    <i class="fa-solid fa-at text-xs"></i>
+                  </span>
+                  <input type="text" id="profile-username-input" required placeholder="Choose new username" class="w-full pl-8 pr-3 py-2 rounded-xl text-xs font-mono border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500 outline-none">
+                </div>
+              </div>
+
+              <div>
+                <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">New Password (leave blank to keep current)</label>
+                <div class="relative">
+                  <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                    <i class="fa-solid fa-lock text-xs"></i>
+                  </span>
+                  <input type="password" id="profile-new-password-input" placeholder="Enter new password" class="w-full pl-8 pr-10 py-2 rounded-xl text-xs border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500 outline-none">
+                  <button type="button" onclick="window.studyPulseApp.togglePasswordVisibility('profile-new-password-input', this)" class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600">
+                    <i class="fa-regular fa-eye text-xs"></i>
+                  </button>
+                </div>
+              </div>
+
+              <div>
+                <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Confirm New Password</label>
+                <div class="relative">
+                  <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                    <i class="fa-solid fa-shield-check text-xs"></i>
+                  </span>
+                  <input type="password" id="profile-confirm-password-input" placeholder="Confirm new password" class="w-full pl-8 pr-3 py-2 rounded-xl text-xs border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500 outline-none">
+                </div>
+              </div>
+
+              <button type="submit" class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold shadow-sm transition flex items-center justify-center gap-1.5">
+                <i class="fa-solid fa-floppy-disk"></i> Update Username &amp; Password
+              </button>
+            </form>
+          </div>
+        </div>
+
+        <!-- CARD 2: USER PROGRESS -->
+        <div class="glass-card p-6 rounded-3xl border border-indigo-200/80 dark:border-indigo-900/50 shadow-sm space-y-4">
+          <div class="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-slate-800">
+            <h3 class="font-heading font-bold text-base text-slate-900 dark:text-white flex items-center gap-2">
+              <i class="fa-solid fa-chart-line text-indigo-600"></i> User Progress
+            </h3>
+            <span id="profile-level-badge" class="px-2.5 py-0.5 rounded-full text-xs font-extrabold bg-indigo-100 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300">
+              Level 1
+            </span>
+          </div>
+
+          <!-- Overall Progress Box -->
+          <div class="p-4 rounded-2xl bg-gradient-to-br from-indigo-500 via-indigo-600 to-purple-600 text-white shadow-md relative overflow-hidden">
+            <div class="relative z-10">
+              <div class="flex items-center justify-between">
+                <span class="text-[10px] font-bold uppercase tracking-wider text-indigo-100">Overall Progress</span>
+                <span id="profile-level-title" class="text-xs font-bold text-indigo-100">Novice Scholar</span>
+              </div>
+              <div class="flex items-baseline justify-between mt-2">
+                <span id="profile-progress-percentage" class="text-3xl font-black font-heading tracking-tight">0%</span>
+                <span id="profile-xp-needed-text" class="text-[11px] text-indigo-100 font-medium">0 / 200 XP</span>
+              </div>
+              <!-- Progress Bar -->
+              <div class="w-full h-2.5 bg-white/20 rounded-full mt-2.5 overflow-hidden">
+                <div id="profile-progress-bar" class="h-full bg-white rounded-full transition-all duration-500" style="width: 0%"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Progress Metrics 2x2 Grid -->
+          <div class="grid grid-cols-2 gap-3 pt-1">
+            <div class="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/60">
+              <span class="text-[10px] font-bold text-slate-500 dark:text-slate-400 block mb-0.5">Total XP</span>
+              <span id="profile-total-xp" class="text-xl font-black font-heading text-indigo-600 dark:text-indigo-400">50 XP</span>
+            </div>
+            <div class="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/60">
+              <span class="text-[10px] font-bold text-slate-500 dark:text-slate-400 block mb-0.5">Daily Streak</span>
+              <span id="profile-current-streak" class="text-xl font-black font-heading text-amber-500">1 Day 🔥</span>
+            </div>
+            <div class="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/60">
+              <span class="text-[10px] font-bold text-slate-500 dark:text-slate-400 block mb-0.5">Today's Progress</span>
+              <span id="profile-today-percentage" class="text-xl font-black font-heading text-emerald-600 dark:text-emerald-400">0%</span>
+            </div>
+            <div class="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/60">
+              <span class="text-[10px] font-bold text-slate-500 dark:text-slate-400 block mb-0.5">Study Focus Time</span>
+              <span id="profile-study-minutes" class="text-xl font-black font-heading text-purple-600 dark:text-purple-400">0 Mins ⏱️</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- CARD 3: TASKS COMPLETED DETAILS -->
+        <div class="glass-card p-6 rounded-3xl border border-indigo-200/80 dark:border-indigo-900/50 shadow-sm space-y-4 flex flex-col">
+          <div class="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-slate-800">
+            <h3 class="font-heading font-bold text-base text-slate-900 dark:text-white flex items-center gap-2">
+              <i class="fa-solid fa-circle-check text-emerald-600"></i> Tasks Completed Details
+            </h3>
+            <span id="profile-tasks-completed-badge" class="px-2.5 py-0.5 rounded-full text-xs font-extrabold bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300">
+              0 Completed
+            </span>
+          </div>
+
+          <!-- Total Tasks Completed Banner -->
+          <div class="p-4 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/60 flex items-center justify-between">
+            <div>
+              <span class="text-[10px] font-bold uppercase tracking-wider text-emerald-800 dark:text-emerald-300">All-Time Completed</span>
+              <h4 id="profile-alltime-tasks" class="font-heading font-black text-2xl text-emerald-700 dark:text-emerald-300 mt-0.5">0 Tasks</h4>
+            </div>
+            <div class="text-right">
+              <span class="text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Today's Ratio</span>
+              <h4 id="profile-today-tasks-ratio" class="font-heading font-extrabold text-base text-slate-800 dark:text-slate-200 mt-0.5">0 / 0 Tasks</h4>
+            </div>
+          </div>
+
+          <!-- Completed Tasks Log -->
+          <div class="flex-1 flex flex-col space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold text-slate-700 dark:text-slate-300">Completed Tasks Log</span>
+              <span id="profile-completed-count-text" class="text-[11px] text-slate-500">0 tasks completed</span>
+            </div>
+            <div id="profile-completed-tasks-list" class="flex-1 space-y-2 max-h-[280px] overflow-y-auto pr-1">
+              <!-- Dynamically rendered -->
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ======================================================== -->
+  <!-- MOBILE BOTTOM NAVIGATION BAR -->
+  <!-- ======================================================== -->
+  <nav class="md:hidden fixed bottom-0 left-0 right-0 z-40 glass-panel border-t border-slate-200/80 dark:border-slate-800/80 mobile-nav-bar flex items-center justify-around py-2">
+    <button data-tab="dashboard" class="flex flex-col items-center text-indigo-600 dark:text-indigo-400 font-bold text-[10px]">
+      <i class="fa-solid fa-chart-pie text-lg mb-0.5"></i>
+      <span>Home</span>
+    </button>
+    <button data-tab="timings" class="flex flex-col items-center text-slate-500 dark:text-slate-400 text-[10px]">
+      <i class="fa-regular fa-clock text-lg mb-0.5"></i>
+      <span>Timings</span>
+    </button>
+    <button data-tab="tasks" class="flex flex-col items-center text-slate-500 dark:text-slate-400 text-[10px]">
+      <i class="fa-regular fa-calendar-check text-lg mb-0.5"></i>
+      <span>Tasks</span>
+    </button>
+    <button data-tab="gamify" class="flex flex-col items-center text-slate-500 dark:text-slate-400 text-[10px]">
+      <i class="fa-solid fa-award text-lg mb-0.5"></i>
+      <span>Progress</span>
+    </button>
+    <button data-tab="profile" class="flex flex-col items-center text-slate-500 dark:text-slate-400 text-[10px]">
+      <i class="fa-regular fa-user text-lg mb-0.5"></i>
+      <span>Profile</span>
+    </button>
+  </nav>
+
+  <!-- ======================================================== -->
+  <!-- MODAL 1: ADD / EDIT TASK MODAL (Feature 5) -->
+  <!-- ======================================================== -->
+  <div id="task-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+    <div class="glass-panel w-full max-w-lg rounded-3xl p-6 shadow-2xl border border-slate-200 dark:border-slate-700 animate-in fade-in zoom-in-95 duration-200">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-slate-800 mb-4">
+        <h3 id="task-modal-title" class="font-heading font-extrabold text-lg text-slate-900 dark:text-white">Add New Study Task</h3>
+        <button onclick="window.studyPulseApp.closeTaskModal()" class="text-slate-400 hover:text-slate-600">
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+      </div>
+      <form id="task-form" class="space-y-4">
+        <input type="hidden" id="task-id-input">
+        
+        <div>
+          <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Task Title *</label>
+          <input type="text" id="task-title-input" required placeholder="e.g. GATE: Linear Algebra Matrix Rank PYQs" class="w-full px-3 py-2 rounded-xl text-xs border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500 outline-none">
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Description / Study Notes</label>
+          <textarea id="task-desc-input" rows="2" placeholder="Specific chapters, exercises, or LeetCode problem numbers..." class="w-full px-3 py-2 rounded-xl text-xs border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500 outline-none"></textarea>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Track / Category</label>
+            <select id="task-cat-input" class="w-full px-3 py-2 rounded-xl text-xs border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500 outline-none">
+              <option value="SEMESTER">📚 Semester Exam</option>
+              <option value="GATE">⚙️ GATE Exams</option>
+              <option value="LANGUAGE">🎯 Other Activities</option>
+              <option value="INTERVIEW">💼 Interview Prep</option>
+              <option value="GENERAL">📝 General To-Do</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Priority</label>
+            <select id="task-priority-input" class="w-full px-3 py-2 rounded-xl text-xs border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500 outline-none">
+              <option value="HIGH">🔴 High (+50 XP)</option>
+              <option value="MEDIUM" selected>🟡 Medium (+30 XP)</option>
+              <option value="LOW">🟢 Low (+20 XP)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <div class="flex items-center justify-between mb-1">
+              <label class="block text-xs font-bold text-slate-700 dark:text-slate-300">Scheduled Time</label>
+              <div class="flex items-center gap-1 text-[10px] font-bold">
+                <button type="button" onclick="window.studyPulseApp.toggleAmPm('task-time-input', 'AM')" class="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-indigo-600 hover:text-white transition">AM</button>
+                <button type="button" onclick="window.studyPulseApp.toggleAmPm('task-time-input', 'PM')" class="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-indigo-600 hover:text-white transition">PM</button>
+              </div>
+            </div>
+            <input type="time" id="task-time-input" value="09:00" class="w-full px-3 py-2 rounded-xl text-xs border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500 outline-none">
+            <div id="task-time-ampm-badge" class="mt-1 text-[11px] font-semibold text-indigo-600 dark:text-indigo-400 flex items-center gap-1">
+              <i class="fa-regular fa-clock"></i> Selected: <span id="task-time-ampm-text" class="font-mono font-bold">09:00 AM</span>
+            </div>
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Duration (Mins)</label>
+            <input type="number" id="task-duration-input" value="45" min="5" step="5" class="w-full px-3 py-2 rounded-xl text-xs border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500 outline-none">
+          </div>
+        </div>
+
+        <div class="flex items-center gap-2 pt-2">
+          <input type="checkbox" id="task-alarm-input" class="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500">
+          <label for="task-alarm-input" class="text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1.5 cursor-pointer">
+            <i class="fa-solid fa-bell text-rose-500"></i> Enable Task Alarm Notification
+          </label>
+        </div>
+
+        <div class="flex items-center justify-end gap-2 pt-4">
+          <button type="button" onclick="window.studyPulseApp.closeTaskModal()" class="px-4 py-2 rounded-xl text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200">
+            Cancel
+          </button>
+          <button type="submit" class="px-5 py-2 rounded-xl text-xs font-bold bg-indigo-600 hover:bg-indigo-700 text-white shadow-md">
+            Save Task
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ======================================================== -->
+  <!-- MODAL 2: ADD / EDIT STUDY TIMING MODAL -->
+  <!-- ======================================================== -->
+  <div id="timing-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+    <div class="glass-panel w-full max-w-lg rounded-3xl p-6 shadow-2xl border border-slate-200 dark:border-slate-700">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-slate-800 mb-4">
+        <h3 id="timing-modal-title" class="font-heading font-extrabold text-lg text-slate-900 dark:text-white">Create Study Timing</h3>
+        <button onclick="window.studyPulseApp.closeTimingModal()" class="text-slate-400 hover:text-slate-600">
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+      </div>
+      <form id="timing-form" class="space-y-4">
+        <input type="hidden" id="timing-id-input">
+
+        <div>
+          <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Session Title *</label>
+          <input type="text" id="timing-title-input" required placeholder="e.g. GATE Core Technical & PYQ Drill" class="w-full px-3 py-2 rounded-xl text-xs border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500 outline-none">
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Category Track</label>
+            <select id="timing-cat-input" class="w-full px-3 py-2 rounded-xl text-xs border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500 outline-none">
+              <option value="SEMESTER">📚 Semester Exam</option>
+              <option value="GATE">⚙️ GATE Exams</option>
+              <option value="LANGUAGE">🎯 Other Activities</option>
+              <option value="INTERVIEW">💼 Interview Prep</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Subject / Specific Topic</label>
+            <input type="text" id="timing-topic-input" placeholder="e.g. Operating Systems / Vocab" class="w-full px-3 py-2 rounded-xl text-xs border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500 outline-none">
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <div class="flex items-center justify-between mb-1">
+              <label class="block text-xs font-bold text-slate-700 dark:text-slate-300">Start Time</label>
+              <div class="flex items-center gap-1 text-[10px] font-bold">
+                <button type="button" onclick="window.studyPulseApp.toggleAmPm('timing-start-input', 'AM')" class="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-indigo-600 hover:text-white transition">AM</button>
+                <button type="button" onclick="window.studyPulseApp.toggleAmPm('timing-start-input', 'PM')" class="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-indigo-600 hover:text-white transition">PM</button>
+              </div>
+            </div>
+            <input type="time" id="timing-start-input" value="09:00" required class="w-full px-3 py-2 rounded-xl text-xs border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500 outline-none">
+            <div id="timing-start-ampm-badge" class="mt-1 text-[11px] font-semibold text-indigo-600 dark:text-indigo-400 flex items-center gap-1">
+              <i class="fa-regular fa-clock"></i> Selected: <span id="timing-start-ampm-text" class="font-mono font-bold">09:00 AM</span>
+            </div>
+          </div>
+          <div>
+            <div class="flex items-center justify-between mb-1">
+              <label class="block text-xs font-bold text-slate-700 dark:text-slate-300">End Time</label>
+              <div class="flex items-center gap-1 text-[10px] font-bold">
+                <button type="button" onclick="window.studyPulseApp.toggleAmPm('timing-end-input', 'AM')" class="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-indigo-600 hover:text-white transition">AM</button>
+                <button type="button" onclick="window.studyPulseApp.toggleAmPm('timing-end-input', 'PM')" class="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-indigo-600 hover:text-white transition">PM</button>
+              </div>
+            </div>
+            <input type="time" id="timing-end-input" value="11:30" required class="w-full px-3 py-2 rounded-xl text-xs border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500 outline-none">
+            <div id="timing-end-ampm-badge" class="mt-1 text-[11px] font-semibold text-indigo-600 dark:text-indigo-400 flex items-center gap-1">
+              <i class="fa-regular fa-clock"></i> Selected: <span id="timing-end-ampm-text" class="font-mono font-bold">11:30 AM</span>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Active Days</label>
+          <input type="text" id="timing-days-input" value="MON,TUE,WED,THU,FRI,SAT" class="w-full px-3 py-2 rounded-xl text-xs border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500 outline-none">
+        </div>
+
+        <div class="flex items-center gap-2 pt-2">
+          <input type="checkbox" id="timing-alarm-input" checked class="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500">
+          <label for="timing-alarm-input" class="text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1.5 cursor-pointer">
+            <i class="fa-solid fa-bell text-rose-500"></i> Ring Alarm At Timing Start
+          </label>
+        </div>
+
+        <div class="flex items-center justify-end gap-2 pt-4">
+          <button type="button" onclick="window.studyPulseApp.closeTimingModal()" class="px-4 py-2 rounded-xl text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200">
+            Cancel
+          </button>
+          <button type="submit" class="px-5 py-2 rounded-xl text-xs font-bold bg-indigo-600 hover:bg-indigo-700 text-white shadow-md">
+            Save Timing
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ======================================================== -->
+  <!-- ======================================================== -->
+  <!-- MODAL 3: AUTHENTICATION MODAL (Username & Password Login & Register) -->
+  <!-- ======================================================== -->
+  <div id="auth-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+    <div class="glass-panel w-full max-w-md rounded-3xl p-6 shadow-2xl border border-slate-200 dark:border-slate-700">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-slate-800 mb-4">
+        <h3 id="auth-modal-header-title" class="font-heading font-extrabold text-lg text-slate-900 dark:text-white flex items-center gap-2">
+          <i class="fa-solid fa-shield-halved text-indigo-600"></i> Study Pro 42 Account
+        </h3>
+        <button onclick="window.studyPulseApp.closeAuthModal()" class="text-slate-400 hover:text-slate-600">
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+      </div>
+
+      <!-- Auth Switcher Tabs (Sign In vs Create Account) -->
+      <div class="flex rounded-2xl bg-slate-100 dark:bg-slate-800 p-1 mb-5">
+        <button type="button" id="auth-tab-signin" onclick="window.studyPulseApp.switchAuthTab('signin')" class="flex-1 py-2 text-xs font-bold rounded-xl transition bg-white dark:bg-slate-900 text-indigo-600 dark:text-indigo-400 shadow-sm">
+          <i class="fa-solid fa-right-to-bracket mr-1"></i> Sign In
+        </button>
+        <button type="button" id="auth-tab-register" onclick="window.studyPulseApp.switchAuthTab('register')" class="flex-1 py-2 text-xs font-bold rounded-xl transition text-slate-600 dark:text-slate-400 hover:text-slate-900">
+          <i class="fa-solid fa-user-plus mr-1"></i> Create Account
+        </button>
+      </div>
+
+      <!-- TAB 1: SIGN IN VIEW -->
+      <form id="form-signin" onsubmit="window.studyPulseApp.handleUsernameLogin(event)" class="space-y-4">
+        <div>
+          <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Username *</label>
+          <div class="relative">
+            <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+              <i class="fa-solid fa-at text-xs"></i>
+            </span>
+            <input type="text" id="signin-username" required placeholder="Enter your username" class="w-full pl-8 pr-3 py-2.5 rounded-xl text-xs border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white font-mono focus:ring-2 focus:ring-indigo-500 outline-none">
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Password *</label>
+          <div class="relative">
+            <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+              <i class="fa-solid fa-lock text-xs"></i>
+            </span>
+            <input type="password" id="signin-password" required placeholder="Enter your password" class="w-full pl-8 pr-10 py-2.5 rounded-xl text-xs border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500 outline-none">
+            <button type="button" onclick="window.studyPulseApp.togglePasswordVisibility('signin-password', this)" class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600">
+              <i class="fa-regular fa-eye text-xs"></i>
+            </button>
+          </div>
+        </div>
+
+        <button type="submit" class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold shadow-md transition flex items-center justify-center gap-1.5">
+          <i class="fa-solid fa-right-to-bracket"></i> Sign In with Username & Password
+        </button>
+
+        <div class="text-center pt-2 border-t border-slate-200 dark:border-slate-800">
+          <button type="button" onclick="window.studyPulseApp.switchAuthTab('register')" class="text-xs font-semibold text-indigo-600 dark:text-indigo-400 hover:underline">
+            New scholar? Create your username and password &rarr;
+          </button>
+        </div>
+      </form>
+
+      <!-- TAB 2: REGISTER VIEW (Create username & password at starting) -->
+      <form id="form-register" onsubmit="window.studyPulseApp.handleUsernameRegister(event)" class="hidden space-y-4">
+        <div class="p-3 rounded-2xl bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-200 dark:border-indigo-800/80 text-[11px] text-indigo-800 dark:text-indigo-300">
+          <i class="fa-solid fa-sparkles text-amber-500 mr-1"></i> Create your unique Username and Password. You can change them anytime in your Profile.
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Choose a Username *</label>
+          <div class="relative">
+            <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+              <i class="fa-solid fa-at text-xs"></i>
+            </span>
+            <input type="text" id="reg-username" required placeholder="e.g. scholar42" class="w-full pl-8 pr-3 py-2.5 rounded-xl text-xs border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white font-mono focus:ring-2 focus:ring-indigo-500 outline-none">
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Your Full Name (Optional)</label>
+          <div class="relative">
+            <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+              <i class="fa-solid fa-user text-xs"></i>
+            </span>
+            <input type="text" id="reg-name" placeholder="Scholar Name" class="w-full pl-8 pr-3 py-2.5 rounded-xl text-xs border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500 outline-none">
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Choose a Password *</label>
+          <div class="relative">
+            <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+              <i class="fa-solid fa-lock text-xs"></i>
+            </span>
+            <input type="password" id="reg-password" required placeholder="At least 3 characters" class="w-full pl-8 pr-10 py-2.5 rounded-xl text-xs border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500 outline-none">
+            <button type="button" onclick="window.studyPulseApp.togglePasswordVisibility('reg-password', this)" class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600">
+              <i class="fa-regular fa-eye text-xs"></i>
+            </button>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Confirm Password *</label>
+          <div class="relative">
+            <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+              <i class="fa-solid fa-shield-check text-xs"></i>
+            </span>
+            <input type="password" id="reg-confirm-password" required placeholder="Re-enter password" class="w-full pl-8 pr-3 py-2.5 rounded-xl text-xs border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500 outline-none">
+          </div>
+        </div>
+
+        <button type="submit" class="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-md transition flex items-center justify-center gap-1.5">
+          <i class="fa-solid fa-user-plus"></i> Create Account &amp; Start
+        </button>
+
+        <div class="text-center pt-2 border-t border-slate-200 dark:border-slate-800">
+          <button type="button" onclick="window.studyPulseApp.switchAuthTab('signin')" class="text-xs font-semibold text-slate-600 dark:text-slate-400 hover:underline">
+            Already have an account? Sign In &rarr;
+          </button>
+        </div>
+      </form>
+
+    </div>
+  </div>
+
+  <!-- ======================================================== -->
+  <!-- MODAL 4: APPRECIATION CELEBRATION MODAL (Feature 8) -->
+  <!-- ======================================================== -->
+  <div id="appreciation-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/70 backdrop-blur-md">
+    <div class="glass-panel w-full max-w-md rounded-3xl p-6 md:p-8 shadow-2xl border border-amber-300 dark:border-amber-700 text-center relative overflow-hidden">
+      <!-- Glow ambient -->
+      <div class="absolute -top-20 -left-20 w-44 h-44 rounded-full bg-amber-400/20 blur-3xl pointer-events-none"></div>
+      
+      <div class="w-20 h-20 rounded-3xl bg-gradient-to-tr from-amber-400 via-orange-500 to-rose-500 mx-auto flex items-center justify-center text-4xl shadow-xl shadow-amber-500/30 mb-4 animate-bounce">
+        🌟
+      </div>
+
+      <h3 id="celebration-title" class="font-heading font-black text-2xl text-slate-900 dark:text-white">Outstanding Achievement Today!</h3>
+      <p id="celebration-message" class="text-xs md:text-sm text-slate-600 dark:text-slate-300 mt-2 leading-relaxed">You conquered all scheduled study blocks today with master consistency!</p>
+
+      <!-- Motivational Quote card -->
+      <div class="my-4 p-4 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/80">
+        <p id="celebration-quote" class="italic text-xs font-medium text-amber-900 dark:text-amber-200">"Small daily improvements over time lead to stunning results."</p>
+      </div>
+
+      <!-- Stats Pill -->
+      <div class="flex items-center justify-center gap-3 my-4">
+        <span id="celebration-stats" class="px-3 py-1 rounded-full text-xs font-bold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">8 / 8 Tasks (100%)</span>
+        <span id="celebration-xp-bonus" class="px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300">+50 XP Awarded!</span>
+      </div>
+
+      <button onclick="window.studyPulseApp.closeAppreciationModal()" class="w-full py-3 bg-gradient-to-r from-amber-500 to-rose-600 hover:from-amber-600 hover:to-rose-700 text-white rounded-2xl font-bold text-xs shadow-lg transition">
+        Continue the Momentum 🚀
+      </button>
+    </div>
+  </div>
+
+  <!-- ======================================================== -->
+  <!-- MODAL 5: IMPORTANT TASK ALARM MODAL (Feature 7) -->
+  <!-- ======================================================== -->
+  <div id="alarm-trigger-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/70 backdrop-blur-md">
+    <div class="glass-panel w-full max-w-md rounded-3xl p-6 shadow-2xl border-2 border-rose-500 text-center animate-in zoom-in-95 duration-200">
+      <div class="w-16 h-16 rounded-2xl bg-rose-100 dark:bg-rose-950/80 text-rose-600 mx-auto flex items-center justify-center text-3xl mb-3 alarm-ringing">
+        <i class="fa-solid fa-bell"></i>
+      </div>
+      <span class="text-xs font-bold uppercase tracking-widest text-rose-600">Important Study Alarm</span>
+      <h3 id="alarm-modal-task-title" class="font-heading font-extrabold text-xl text-slate-900 dark:text-white mt-1">Study Session Starting!</h3>
+      <p id="alarm-modal-task-cat" class="text-xs font-semibold text-indigo-600 dark:text-indigo-400 mt-1">GATE Exams • Scheduled at 09:30</p>
+      <p id="alarm-modal-task-desc" class="text-xs text-slate-500 dark:text-slate-400 mt-2">Time to initiate your focus block. Step away from distractions.</p>
+
+      <div class="grid grid-cols-2 gap-3 mt-6">
+        <button onclick="window.studyPulseApp.closeAlarmModal()" class="py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-bold hover:bg-slate-200">
+          Snooze 5 Mins
+        </button>
+        <button id="alarm-mark-done-btn" class="py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-md">
+          <i class="fa-solid fa-check mr-1"></i> Mark Done (+XP)
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div id="toast-container" class="fixed top-20 right-4 z-50 flex flex-col gap-2 max-w-sm pointer-events-none"></div>
+
+  <!-- Application Scripts -->
+  <script src="/js/audio-alarm.js"></script>
+  <script src="/js/api.js"></script>
+  <script src="/js/app.js"></script>
+</body>
+</html>

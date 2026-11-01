@@ -1,0 +1,33 @@
+{
+  "id": "/?source=pwa",
+  "name": "Study Pro 42 - Study Timings & Gamified To-Do",
+  "short_name": "Study Pro 42",
+  "description": "Study Pro 42: Daily To-Do & Gamified Study Planner for Semester Exams, GATE, Other Activities, and Interview Prep.",
+  "start_url": "/?source=pwa",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#0f172a",
+  "theme_color": "#6366f1",
+  "orientation": "portrait",
+  "prefer_related_applications": false,
+  "icons": [
+    {
+      "src": "https://api.dicebear.com/7.x/shapes/png?seed=StudyPro42&size=192&backgroundColor=6366f1",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "https://api.dicebear.com/7.x/shapes/png?seed=StudyPro42&size=512&backgroundColor=6366f1",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "https://api.dicebear.com/7.x/shapes/svg?seed=StudyPro42&backgroundColor=6366f1",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ],
+  "categories": ["education", "productivity"]
+}

@@ -1,0 +1,12 @@
+{
+  "appId": "com.studypro42.app",
+  "appName": "Study Pro 42",
+  "webDir": "src/main/resources/static",
+  "bundledWebRuntime": false,
+  "server": {
+    "cleartext": true
+  },
+  "android": {
+    "allowMixedContent": true
+  }
+}
