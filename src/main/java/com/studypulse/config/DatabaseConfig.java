@@ -11,7 +11,6 @@ import org.springframework.context.annotation.Primary;
 
 import javax.sql.DataSource;
 import java.io.File;
-import java.net.URI;
 import java.sql.Connection;
 import java.sql.DriverManager;
 
@@ -40,6 +39,7 @@ public class DatabaseConfig {
             log.info("==================================================================");
             log.info("🚀 [StudyPro42] Successfully connected to Primary Database!");
             log.info("🔗 Target URL: {}", maskUrl(creds.jdbcUrl));
+            log.info("👤 User: {}", creds.username);
             log.info("==================================================================");
 
             HikariConfig config = new HikariConfig();
@@ -57,7 +57,7 @@ public class DatabaseConfig {
         }
 
         log.warn("==================================================================");
-        log.warn("⚠️ [StudyPro42] Primary MySQL database at {} is unreachable.", maskUrl(creds.jdbcUrl));
+        log.warn("⚠️ [StudyPro42] Primary database at {} is unreachable.", maskUrl(creds.jdbcUrl));
         log.warn("💡 Activating resilient persistent embedded database (MySQL mode) at ./data/studypro42_db");
         log.warn("✅ Application will boot smoothly and remain 100% ONLINE on cloud deployments!");
         log.warn("==================================================================");
@@ -96,29 +96,78 @@ public class DatabaseConfig {
             pass = configuredPassword;
         }
 
+        // Support individual host/port environment variables
+        String envHost = getFirstNonEmptyEnv("AIVEN_DB_HOST", "MYSQL_HOST", "MYSQLHOST");
+        if (envHost != null && !envHost.trim().isEmpty()) {
+            String envPort = getFirstNonEmptyEnv("AIVEN_DB_PORT", "MYSQL_PORT", "MYSQLPORT");
+            if (envPort == null || envPort.trim().isEmpty()) envPort = "3306";
+            String envDb = getFirstNonEmptyEnv("AIVEN_DB_NAME", "MYSQL_DATABASE", "MYSQLDATABASE");
+            if (envDb == null || envDb.trim().isEmpty()) envDb = "defaultdb";
+            rawUrl = "jdbc:mysql://" + envHost.trim() + ":" + envPort.trim() + "/" + envDb.trim() + "?sslMode=REQUIRED";
+        }
+
         if (rawUrl == null || rawUrl.trim().isEmpty()) {
             rawUrl = "jdbc:mysql://localhost:3306/studypro42_db?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC";
         }
 
-        // Handle cloud URLs formatted as mysql://user:pass@host:port/dbname
+        // Robust parsing of mysql:// URIs (e.g. Aiven Service URI: mysql://user:pass@host:port/dbname?ssl-mode=REQUIRED)
         if (rawUrl.startsWith("mysql://")) {
             try {
-                URI uri = URI.create(rawUrl);
-                String userInfo = uri.getUserInfo();
-                if (userInfo != null && userInfo.contains(":")) {
-                    String[] parts = userInfo.split(":", 2);
-                    user = parts[0];
-                    pass = parts[1];
+                String withoutScheme = rawUrl.substring(8);
+                int atIdx = withoutScheme.lastIndexOf('@');
+                if (atIdx != -1) {
+                    String userPass = withoutScheme.substring(0, atIdx);
+                    String hostPortRest = withoutScheme.substring(atIdx + 1);
+
+                    if (userPass.contains(":")) {
+                        String[] up = userPass.split(":", 2);
+                        user = up[0];
+                        pass = up[1];
+                    } else {
+                        user = userPass;
+                    }
+
+                    String query = null;
+                    int qIdx = hostPortRest.indexOf('?');
+                    if (qIdx != -1) {
+                        query = hostPortRest.substring(qIdx + 1);
+                        hostPortRest = hostPortRest.substring(0, qIdx);
+                    }
+
+                    String path = "/defaultdb";
+                    int slashIdx = hostPortRest.indexOf('/');
+                    if (slashIdx != -1) {
+                        path = hostPortRest.substring(slashIdx);
+                        hostPortRest = hostPortRest.substring(0, slashIdx);
+                    }
+
+                    String host = hostPortRest;
+                    int port = 3306;
+                    if (hostPortRest.contains(":")) {
+                        String[] hp = hostPortRest.split(":", 2);
+                        host = hp[0];
+                        try {
+                            port = Integer.parseInt(hp[1]);
+                        } catch (NumberFormatException ignored) {}
+                    }
+
+                    if (query != null) {
+                        query = query.replace("ssl-mode=", "sslMode=");
+                    } else {
+                        query = "sslMode=REQUIRED";
+                    }
+
+                    String cleanJdbc = "jdbc:mysql://" + host + ":" + port + path + "?" + query;
+                    return new ParsedCredentials(cleanJdbc, user, pass, "com.mysql.cj.jdbc.Driver");
                 }
-                String host = uri.getHost();
-                int port = uri.getPort() > 0 ? uri.getPort() : 3306;
-                String path = uri.getPath();
-                String query = uri.getQuery();
-                String cleanJdbc = "jdbc:mysql://" + host + ":" + port + path + (query != null ? "?" + query : "");
-                return new ParsedCredentials(cleanJdbc, user, pass, "com.mysql.cj.jdbc.Driver");
             } catch (Exception e) {
-                log.warn("Failed to parse mysql:// URL: {}", e.getMessage());
+                log.warn("Custom mysql:// parse warning: {}", e.getMessage());
             }
+        }
+
+        // Standardize ssl-mode in jdbc:mysql:// URLs if present
+        if (rawUrl.startsWith("jdbc:mysql:") && rawUrl.contains("ssl-mode=")) {
+            rawUrl = rawUrl.replace("ssl-mode=", "sslMode=");
         }
 
         String driver = "com.mysql.cj.jdbc.Driver";
@@ -138,15 +187,15 @@ public class DatabaseConfig {
 
         try {
             Class.forName(creds.driverClassName);
-            DriverManager.setLoginTimeout(3);
+            DriverManager.setLoginTimeout(4);
 
             String testUrl = creds.jdbcUrl;
             if (testUrl.startsWith("jdbc:mysql:") && !testUrl.contains("connectTimeout")) {
-                testUrl += (testUrl.contains("?") ? "&" : "?") + "connectTimeout=3000&socketTimeout=3000";
+                testUrl += (testUrl.contains("?") ? "&" : "?") + "connectTimeout=4000&socketTimeout=4000";
             }
 
             try (Connection conn = DriverManager.getConnection(testUrl, creds.username, creds.password)) {
-                return conn != null && conn.isValid(2);
+                return conn != null && conn.isValid(3);
             }
         } catch (Throwable t) {
             log.info("Direct database connection test to [{}] returned: {}", maskUrl(creds.jdbcUrl), t.getMessage());
