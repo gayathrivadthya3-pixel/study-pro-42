@@ -24,8 +24,8 @@ public class StudyTimingService {
      */
     @Transactional
     public void initDefaultTimingsIfAbsent(Long userId) {
-        List<StudyTiming> existing = studyTimingRepository.findByUserIdOrderByStartTimeAsc(userId);
-        if (!existing.isEmpty()) {
+        long existingCount = studyTimingRepository.countByUserId(userId);
+        if (existingCount > 0) {
             return;
         }
 

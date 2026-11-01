@@ -19,6 +19,9 @@ public class DatabaseConfig {
 
     private static final Logger log = LoggerFactory.getLogger(DatabaseConfig.class);
 
+    public static volatile String lastConnectionError = null;
+    public static volatile String activeDatabaseType = "UNKNOWN";
+
     @Value("${spring.datasource.url:}")
     private String configuredUrl;
 
@@ -42,6 +45,9 @@ public class DatabaseConfig {
             log.info("👤 User: {}", creds.username);
             log.info("==================================================================");
 
+            activeDatabaseType = "PRIMARY_MYSQL";
+            lastConnectionError = null;
+
             HikariConfig config = new HikariConfig();
             config.setJdbcUrl(creds.jdbcUrl);
             config.setUsername(creds.username);
@@ -49,7 +55,7 @@ public class DatabaseConfig {
             config.setDriverClassName(creds.driverClassName);
             config.setMaximumPoolSize(10);
             config.setMinimumIdle(2);
-            config.setConnectionTimeout(20000);
+            config.setConnectionTimeout(30000);
             config.setIdleTimeout(300000);
             config.setMaxLifetime(1800000);
             config.setPoolName("StudyPro42-PrimaryPool");
@@ -58,9 +64,14 @@ public class DatabaseConfig {
 
         log.warn("==================================================================");
         log.warn("⚠️ [StudyPro42] Primary database at {} is unreachable.", maskUrl(creds.jdbcUrl));
+        if (lastConnectionError != null) {
+            log.warn("❌ Reason: {}", lastConnectionError);
+        }
         log.warn("💡 Activating resilient persistent embedded database (MySQL mode) at ./data/studypro42_db");
         log.warn("✅ Application will boot smoothly and remain 100% ONLINE on cloud deployments!");
         log.warn("==================================================================");
+
+        activeDatabaseType = "EMBEDDED_RESILIENT";
 
         try {
             File dataDir = new File("./data");
@@ -103,7 +114,7 @@ public class DatabaseConfig {
             if (envPort == null || envPort.trim().isEmpty()) envPort = "3306";
             String envDb = getFirstNonEmptyEnv("AIVEN_DB_NAME", "MYSQL_DATABASE", "MYSQLDATABASE");
             if (envDb == null || envDb.trim().isEmpty()) envDb = "defaultdb";
-            rawUrl = "jdbc:mysql://" + envHost.trim() + ":" + envPort.trim() + "/" + envDb.trim() + "?sslMode=REQUIRED";
+            rawUrl = "jdbc:mysql://" + envHost.trim() + ":" + envPort.trim() + "/" + envDb.trim() + "?sslMode=REQUIRED&trustServerCertificate=true&allowPublicKeyRetrieval=true&serverTimezone=UTC";
         }
 
         if (rawUrl == null || rawUrl.trim().isEmpty()) {
@@ -157,6 +168,16 @@ public class DatabaseConfig {
                         query = "sslMode=REQUIRED";
                     }
 
+                    if (!query.contains("trustServerCertificate")) {
+                        query += "&trustServerCertificate=true";
+                    }
+                    if (!query.contains("allowPublicKeyRetrieval")) {
+                        query += "&allowPublicKeyRetrieval=true";
+                    }
+                    if (!query.contains("serverTimezone")) {
+                        query += "&serverTimezone=UTC";
+                    }
+
                     String cleanJdbc = "jdbc:mysql://" + host + ":" + port + path + "?" + query;
                     return new ParsedCredentials(cleanJdbc, user, pass, "com.mysql.cj.jdbc.Driver");
                 }
@@ -166,8 +187,19 @@ public class DatabaseConfig {
         }
 
         // Standardize ssl-mode in jdbc:mysql:// URLs if present
-        if (rawUrl.startsWith("jdbc:mysql:") && rawUrl.contains("ssl-mode=")) {
-            rawUrl = rawUrl.replace("ssl-mode=", "sslMode=");
+        if (rawUrl.startsWith("jdbc:mysql:")) {
+            if (rawUrl.contains("ssl-mode=")) {
+                rawUrl = rawUrl.replace("ssl-mode=", "sslMode=");
+            }
+            if (!rawUrl.contains("trustServerCertificate") && (rawUrl.contains("aivencloud.com") || rawUrl.contains("aiven"))) {
+                rawUrl += (rawUrl.contains("?") ? "&" : "?") + "trustServerCertificate=true";
+            }
+            if (!rawUrl.contains("allowPublicKeyRetrieval")) {
+                rawUrl += (rawUrl.contains("?") ? "&" : "?") + "allowPublicKeyRetrieval=true";
+            }
+            if (!rawUrl.contains("serverTimezone")) {
+                rawUrl += (rawUrl.contains("?") ? "&" : "?") + "serverTimezone=UTC";
+            }
         }
 
         String driver = "com.mysql.cj.jdbc.Driver";
@@ -187,17 +219,22 @@ public class DatabaseConfig {
 
         try {
             Class.forName(creds.driverClassName);
-            DriverManager.setLoginTimeout(4);
+            DriverManager.setLoginTimeout(10);
 
             String testUrl = creds.jdbcUrl;
             if (testUrl.startsWith("jdbc:mysql:") && !testUrl.contains("connectTimeout")) {
-                testUrl += (testUrl.contains("?") ? "&" : "?") + "connectTimeout=4000&socketTimeout=4000";
+                testUrl += (testUrl.contains("?") ? "&" : "?") + "connectTimeout=10000&socketTimeout=10000";
             }
 
             try (Connection conn = DriverManager.getConnection(testUrl, creds.username, creds.password)) {
-                return conn != null && conn.isValid(3);
+                boolean valid = conn != null && conn.isValid(5);
+                if (valid) {
+                    lastConnectionError = null;
+                }
+                return valid;
             }
         } catch (Throwable t) {
+            lastConnectionError = t.getClass().getSimpleName() + ": " + t.getMessage();
             log.info("Direct database connection test to [{}] returned: {}", maskUrl(creds.jdbcUrl), t.getMessage());
             return false;
         }

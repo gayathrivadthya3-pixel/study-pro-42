@@ -1359,9 +1359,15 @@ document.addEventListener('DOMContentLoaded', () => {
     handleLogout() {
       if (confirm('Are you sure you want to log out?')) {
         window.studyPulseApi.logout();
+        this.tasks = [];
+        this.timings = [];
+        this.progress = null;
         this.showToast('Logged out.', 'info');
         this.checkAuth();
-        this.switchTab('dashboard');
+        this.renderTasks();
+        this.renderTimings();
+        this.openAuthModal();
+        this.switchAuthTab('signin');
       }
     },
 

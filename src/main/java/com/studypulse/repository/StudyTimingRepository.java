@@ -10,4 +10,5 @@ import java.util.List;
 public interface StudyTimingRepository extends JpaRepository<StudyTiming, Long> {
     List<StudyTiming> findByUserIdOrderByStartTimeAsc(Long userId);
     List<StudyTiming> findByUserIdAndCategoryOrderByStartTimeAsc(Long userId, String category);
+    long countByUserId(Long userId);
 }

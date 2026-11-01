@@ -13,6 +13,7 @@ public interface TaskRepository extends JpaRepository<Task, Long> {
     List<Task> findByUserIdAndScheduledDateOrderByScheduledTimeAsc(Long userId, LocalDate date);
     List<Task> findByUserIdAndScheduledDateBetween(Long userId, LocalDate startDate, LocalDate endDate);
     List<Task> findByUserIdAndCategory(Long userId, String category);
+    long countByUserId(Long userId);
     long countByUserIdAndCompletedTrue(Long userId);
     long countByUserIdAndScheduledDate(Long userId, LocalDate date);
     long countByUserIdAndScheduledDateAndCompletedTrue(Long userId, LocalDate date);

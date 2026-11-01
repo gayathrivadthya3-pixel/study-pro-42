@@ -29,12 +29,12 @@ public class TaskService {
      */
     @Transactional
     public void initDefaultTasksIfAbsent(Long userId) {
-        LocalDate today = LocalDate.now();
-        List<Task> existing = taskRepository.findByUserIdAndScheduledDateOrderByScheduledTimeAsc(userId, today);
-        if (!existing.isEmpty()) {
+        // Only load starter tasks if this user has never had any tasks created
+        long existingCount = taskRepository.countByUserId(userId);
+        if (existingCount > 0) {
             return;
         }
-        loadDefaultTasks(userId, "ALL", today);
+        loadDefaultTasks(userId, "ALL", LocalDate.now());
     }
 
     /**

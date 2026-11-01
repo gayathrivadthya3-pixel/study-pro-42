@@ -1,5 +1,6 @@
 package com.studypulse.controller;
 
+import com.studypulse.config.DatabaseConfig;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -38,8 +39,7 @@ public class DatabaseStatusController {
 
             boolean isMySQL = productName != null && productName.toLowerCase().contains("mysql");
             boolean isH2 = productName != null && productName.toLowerCase().contains("h2");
-            boolean isAiven = (activeUrl != null && (activeUrl.toLowerCase().contains("aivencloud.com") || activeUrl.toLowerCase().contains("aiven")))
-                    || (datasourceUrl != null && (datasourceUrl.toLowerCase().contains("aivencloud.com") || datasourceUrl.toLowerCase().contains("aiven")));
+            boolean isAiven = isMySQL && (activeUrl != null && (activeUrl.toLowerCase().contains("aivencloud.com") || activeUrl.toLowerCase().contains("aiven")));
 
             status.put("connected", true);
             status.put("productName", productName);
@@ -53,9 +53,13 @@ public class DatabaseStatusController {
                     : isMySQL
                     ? "🐬 Connected to Live MySQL Database (studypro42_db)!"
                     : isH2
-                    ? "⚡ Running on Resilient Database (" + productName + " - MySQL Mode)!"
+                    ? "⚡ Resilient Persistent Database (" + productName + " - MySQL Mode)"
                     : "⚡ Connected to Database (" + productName + ")");
-            status.put("cloudProvider", isAiven ? "Aiven Cloud" : isMySQL ? "MySQL Database (Port 3306)" : isH2 ? "Resilient Cloud Database" : "SQL Database");
+            status.put("cloudProvider", isAiven ? "Aiven Cloud MySQL" : isMySQL ? "MySQL Database (Port 3306)" : isH2 ? "Resilient Database" : "SQL Database");
+
+            if (DatabaseConfig.lastConnectionError != null) {
+                status.put("primaryConnectionNotice", DatabaseConfig.lastConnectionError);
+            }
         } catch (Exception e) {
             status.put("connected", false);
             status.put("error", e.getMessage());

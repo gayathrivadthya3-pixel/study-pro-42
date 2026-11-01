@@ -105,10 +105,7 @@ public class AuthService {
         user.setLastLoginAt(LocalDateTime.now());
         userRepository.save(user);
 
-        // Ensure progress and default schedules exist
         UserProgress progress = initUserProgressIfAbsent(user);
-        studyTimingService.initDefaultTimingsIfAbsent(user.getId());
-        taskService.initDefaultTasksIfAbsent(user.getId());
 
         String dummyToken = "jwt_mob_" + user.getId() + "_" + System.currentTimeMillis();
         return new AuthResponseDto(dummyToken, "Login successful via Mobile OTP!", user, progress);
@@ -205,8 +202,6 @@ public class AuthService {
         userRepository.save(user);
 
         UserProgress progress = initUserProgressIfAbsent(user);
-        studyTimingService.initDefaultTimingsIfAbsent(user.getId());
-        taskService.initDefaultTasksIfAbsent(user.getId());
 
         String token = "jwt_user_" + user.getId() + "_" + System.currentTimeMillis();
         return new AuthResponseDto(token, "Login successful! Welcome back, " + user.getName() + "!", user, progress);
