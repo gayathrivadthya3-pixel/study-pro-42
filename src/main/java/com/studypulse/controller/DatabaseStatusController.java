@@ -67,4 +67,13 @@ public class DatabaseStatusController {
         }
         return ResponseEntity.ok(status);
     }
+
+    @GetMapping("/ping")
+    public ResponseEntity<Map<String, Object>> ping() {
+        return ResponseEntity.ok(Map.of(
+                "status", "UP",
+                "service", "Study Pro 42",
+                "timestamp", System.currentTimeMillis()
+        ));
+    }
 }

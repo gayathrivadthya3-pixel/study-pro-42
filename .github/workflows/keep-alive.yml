@@ -1,0 +1,24 @@
+name: Keep Render App Awake 24/7
+
+on:
+  schedule:
+    # Runs every 10 minutes
+    - cron: '*/10 * * * *'
+  workflow_dispatch: # Allows manual trigger from GitHub UI
+
+jobs:
+  ping-render:
+    name: Ping Render Web Service
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send HTTP Ping to Render
+        run: |
+          echo "Pinging Study Pro 42 on Render to prevent cold-start sleep..."
+          HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" --max-time 60 "https://study-pro-42.onrender.com/api/database/ping")
+          echo "Response HTTP Status: $HTTP_STATUS"
+          if [ "$HTTP_STATUS" -eq 200 ] || [ "$HTTP_STATUS" -eq 301 ] || [ "$HTTP_STATUS" -eq 302 ]; then
+            echo "✅ Render instance is awake and healthy!"
+          else
+            echo "⚠️ Warning: Ping received status $HTTP_STATUS, retrying root URL..."
+            curl -s -o /dev/null -w "%{http_code}" --max-time 60 "https://study-pro-42.onrender.com/"
+          fi

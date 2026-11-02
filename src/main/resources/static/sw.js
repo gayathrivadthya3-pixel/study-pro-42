@@ -1,7 +1,20 @@
-// Study Pro 42 PWA Service Worker v15 (Clean Empty Slate on Sign In & Custom Tasks Only)
-const CACHE_NAME = 'studypro42-v15';
+// Study Pro 42 PWA Service Worker v16 (Zero Cold-Start Screen & Instant Offline Shell)
+const CACHE_NAME = 'studypro42-v16';
+const PRECACHE_URLS = [
+  '/',
+  '/index.html',
+  '/css/styles.css',
+  '/js/app.js',
+  '/js/api.js',
+  '/manifest.json'
+];
 
 self.addEventListener('install', (event) => {
+  event.waitUntil(
+    caches.open(CACHE_NAME).then((cache) => {
+      return cache.addAll(PRECACHE_URLS).catch((err) => console.warn('Pre-cache warning:', err));
+    })
+  );
   self.skipWaiting();
 });
 
@@ -9,7 +22,11 @@ self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((keys) => {
       return Promise.all(
-        keys.map((key) => caches.delete(key)) // clear all old cached files immediately
+        keys.map((key) => {
+          if (key !== CACHE_NAME) {
+            return caches.delete(key);
+          }
+        })
       );
     })
   );
@@ -22,11 +39,20 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Network-First strategy: fetch from server first, fallback to cache only if completely offline
+  // Intercept navigation requests to prevent Render cold-start terminal screen from displaying
   event.respondWith(
     fetch(event.request)
-      .then((networkResponse) => {
+      .then(async (networkResponse) => {
         if (networkResponse && networkResponse.status === 200) {
+          if (event.request.mode === 'navigate' || event.request.destination === 'document') {
+            const clone = networkResponse.clone();
+            const text = await clone.text().catch(() => '');
+            // If Render returned its cold-start wake up screen, serve the cached app instead
+            if (text.includes('APPLICATION LOADING') || text.includes('WELCOME TO RENDER') || text.includes('SERVICE WAKING UP')) {
+              const cached = await caches.match('/index.html');
+              if (cached) return cached;
+            }
+          }
           const responseToCache = networkResponse.clone();
           caches.open(CACHE_NAME).then((cache) => cache.put(event.request, responseToCache));
         }
